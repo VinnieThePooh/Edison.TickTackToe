@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Edison.TickTackToe.Web", "Edison.TickTackToe.Web\Edison.TickTackToe.Web.csproj", "{837A6B82-EEFA-4EBB-A35E-DD5AE3EC3EF6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Edison.TickTackToe.Domain", "Edison.TickTackToe.Domain\Edison.TickTackToe.Domain.csproj", "{154241CC-A412-40FC-A022-E5E13F562AB3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{837A6B82-EEFA-4EBB-A35E-DD5AE3EC3EF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{837A6B82-EEFA-4EBB-A35E-DD5AE3EC3EF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{837A6B82-EEFA-4EBB-A35E-DD5AE3EC3EF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{837A6B82-EEFA-4EBB-A35E-DD5AE3EC3EF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{154241CC-A412-40FC-A022-E5E13F562AB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{154241CC-A412-40FC-A022-E5E13F562AB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{154241CC-A412-40FC-A022-E5E13F562AB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{154241CC-A412-40FC-A022-E5E13F562AB3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
