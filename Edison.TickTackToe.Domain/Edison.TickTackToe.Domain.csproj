@@ -58,9 +58,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataAccess\Configuration.cs" />
+    <Compile Include="DataAccess\CustomDbInitializers.cs" />
+    <Compile Include="DataAccess\DbSeeding.cs" />
     <Compile Include="DataAccess\DefaultConstraints.cs" />
     <Compile Include="DataAccess\GameContext.cs" />
     <Compile Include="DataAccess\Identities.cs" />
+    <Compile Include="DataAccess\RoleNames.cs" />
     <Compile Include="Models\Game.cs" />
     <Compile Include="Models\GameFigure.cs" />
     <Compile Include="Models\GameStep.cs" />
