@@ -1,16 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Edison.TickTackToe.Domain.Models
 {
   public class GameFigure
     {
-      [Key]
+      #region Constructors
+
+      public GameFigure()
+      {
+          GameSteps = new List<GameStep>();
+      }
+
+      #endregion
+
       public int FigureId { get; set; }
-      public string FigureName { get; set; }
+      public string Name { get; set; }
+
+      public virtual List<GameStep> GameSteps { get; set; }
     }
 }

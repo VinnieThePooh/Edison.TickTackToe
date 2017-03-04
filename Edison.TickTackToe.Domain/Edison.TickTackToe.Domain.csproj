@@ -63,11 +63,15 @@
     <Compile Include="DataAccess\DefaultConstraints.cs" />
     <Compile Include="DataAccess\GameContext.cs" />
     <Compile Include="DataAccess\Identities.cs" />
-    <Compile Include="DataAccess\RoleNames.cs" />
+    <Compile Include="Infrastructure\Handbooks\FigureNames.cs" />
+    <Compile Include="Infrastructure\Handbooks\SchemaNames.cs" />
+    <Compile Include="Infrastructure\Handbooks\StatusNames.cs" />
+    <Compile Include="Models\MemberStatus.cs" />
+    <Compile Include="Infrastructure\Handbooks\RoleNames.cs" />
     <Compile Include="Models\Game.cs" />
     <Compile Include="Models\GameFigure.cs" />
     <Compile Include="Models\GameStep.cs" />
-    <Compile Include="Models\UserProfile.cs" />
+    <Compile Include="Models\Member.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

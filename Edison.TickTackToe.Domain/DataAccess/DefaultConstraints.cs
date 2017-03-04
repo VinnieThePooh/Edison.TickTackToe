@@ -2,6 +2,6 @@
 {
     public static class DefaultConstraints
     {
-        public const int DefaultStringMaxLength = 200;
+        public const int StringMaxLength = 200;
     }
 }
