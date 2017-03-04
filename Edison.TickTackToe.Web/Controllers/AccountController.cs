@@ -51,7 +51,6 @@ namespace Edison.TickTackToe.Web.Controllers
         #endregion
 
         #region Implementation details
-
         //
         // GET: /Account/Login
         [AllowAnonymous]
