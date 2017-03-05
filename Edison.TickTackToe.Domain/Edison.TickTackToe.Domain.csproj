@@ -66,6 +66,7 @@
     <Compile Include="Infrastructure\Handbooks\FigureNames.cs" />
     <Compile Include="Infrastructure\Handbooks\SchemaNames.cs" />
     <Compile Include="Infrastructure\Handbooks\StatusNames.cs" />
+    <Compile Include="Infrastructure\StatusCodes.cs" />
     <Compile Include="Models\MemberStatus.cs" />
     <Compile Include="Infrastructure\Handbooks\RoleNames.cs" />
     <Compile Include="Models\Game.cs" />

@@ -2,7 +2,9 @@
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using Edison.TickTackToe.Domain.Infrastructure.Handbooks;
 using Edison.TickTackToe.Domain.Models;
+using Edison.TickTackToe.Web.Infrastructure;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
@@ -81,6 +83,7 @@ namespace Edison.TickTackToe.Web.Controllers
             }
 
             await SignInManager.SignInAsync(user, model.RememberMe, false);
+            OnlineUsersTracker.AddOnlineUser(new UserProjection() { Email = model.Email, Name = user.UserName,  Status = StatusNames.Idle });
             return RedirectToLocal(returnUrl);
         }
 
@@ -196,9 +199,13 @@ namespace Edison.TickTackToe.Web.Controllers
         // POST: /Account/LogOff
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult LogOff()
+        public async Task<ActionResult> LogOff()
         {
+
+            var id = HttpContext.User.Identity.GetUserId<int>();
+            var user = await UserManager.FindByIdAsync(id);
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+            OnlineUsersTracker.RemoveOnlineUser(new UserProjection() {Email = user.Email, Name = user.UserName});
             return RedirectToAction("Index", "Home");
         }
 

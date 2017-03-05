@@ -3,6 +3,8 @@
     padding-bottom: 20px;
 }
 
+
+
 /* Set padding to keep content from hitting the edges */
 .body-content {
     padding-left: 15px;
@@ -21,4 +23,69 @@ input,
 select,
 textarea {
     max-width: 280px;
+}
+
+footer {
+    position: absolute;
+    padding: 20px 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 60px;
+    border-top: 1px solid #cccccc;
+}
+
+.wrapper {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50px;
+    bottom: 60px;
+    margin: 0;
+    border-right: 1px solid #cccccc;
+    border-left: 1px solid #cccccc;
+    
+}
+
+.navbar {
+    margin-bottom: 0;
+}
+
+
+
+.users {
+    border-right: 1px solid #cccccc;
+    float: left;
+    width: 20%;
+    height: auto;
+    max-height: 1024px;
+    overflow: auto;
+    <!-- max-width: 300px; -->
+    
+}
+
+.users table td, .users table th {
+    text-align: center;
+}
+
+.game {
+    border-left: 1px solid red;
+    width: 80%;
+    float: right;
+    padding-left: 15px;
+}
+
+
+.messageBox {
+    height: 50px;
+    border-bottom: 1px solid #cccccc;
+    padding-top: 15px;
+    padding-left: 10px;
+}
+
+.contact {
+    display: none;
+    float: left;
+    width: 35%;
+    height: 30px;
 }
