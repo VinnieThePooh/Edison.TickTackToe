@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using Edison.TickTackToe.Domain.Models;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
@@ -62,7 +63,7 @@ namespace Edison.TickTackToe.Web.Controllers
 
         //
         // POST: /Account/Login
-        [HttpPost]
+        [HttpPost] 
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
@@ -72,16 +73,15 @@ namespace Edison.TickTackToe.Web.Controllers
                 return View(model);
             }
 
-
-            var result = await SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout: false);
-            switch (result)
+            var user= await UserManager.FindByEmailAsync(model.Email);
+            if (user == null)
             {
-                case SignInStatus.Success:
-                    return RedirectToLocal(returnUrl);
-                default:
-                    ModelState.AddModelError("", Default.ValInvalidLoginAttempt);
-                    return View(model);
+                ModelState.AddModelError("", DefaultResources.ValInvalidLoginAttempt);
+                return View(model);
             }
+
+            await SignInManager.SignInAsync(user, model.RememberMe, false);
+            return RedirectToLocal(returnUrl);
         }
 
         [AllowAnonymous]
@@ -97,7 +97,7 @@ namespace Edison.TickTackToe.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser {UserName = model.Email, Email = model.Email};
+                var user = new Member {UserName = model.Email, Email = model.Email};
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {

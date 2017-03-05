@@ -34,7 +34,6 @@ namespace Edison.TickTackToe.Domain.DataAccess
                 Email = "admin@mail.ru"
             };
 
-
             var fooUser = new Member()
             {
                 UserName = "FooUser",
