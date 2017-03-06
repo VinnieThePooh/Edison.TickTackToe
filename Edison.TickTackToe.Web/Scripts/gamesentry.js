@@ -1,5 +1,4 @@
 ﻿$(function() {
-
     window.EnumMapper = function() {
         
         this.fromInt = {
@@ -20,6 +19,7 @@
 
     // init
     defineClientCallbacks(gamesHub);
+    initHandlers();
 
 
 
@@ -41,6 +41,11 @@
     });
 });
 
+function  initHandlers()
+{
+    
+}
+
 
 
 // difine own functions here
@@ -49,6 +54,27 @@ function addUserToTable(table, user) {
     // add icon too
     row.append($("<td>").text(user.Name));
     row.append($("<td>").text(user.Status));
+
+
+    // add button if current row doesnot match current user
+    if ($("#tableUsers").data("name") !== user.Name) {
+
+        var button = $("<button>").addClass("button button-default").height(30).text("Invite");
+        button.on("click", function() {
+            var row = $(this).closest("tr");
+            var email = row.data("email");
+            console.log("User with email: " + email + " clicked");
+            $.connection.gamesHub.server.inviteUser(row.find("td:eq(0)").text());
+        });
+
+        row.append($("<td>").append(button));
+        if (user.Status === "Idle")
+            button.attr("disabled", false);
+        else button.attr("disabled", true);
+    } else {
+        row.append("<td>");
+    }
+
     row.attr("data-email", user.Email);
     table.append(row);
 }
@@ -58,6 +84,10 @@ function defineClientCallbacks(gamesHub) {
     client.userJoinedSite = onUserJoinedSite;
     client.userLeftSite = onUserLeftSite;
     client.statusChanged = onStatusChanged;
+    client.invitationArrived = onHandleInvitation;
+    client.handleException = onHandleException;
+    client.userAcceptedInvitation = onUserAcceptedInvitation;
+    client.userRejectedInvitation = onUserRejectedInvitation;
 }
 
 
@@ -65,6 +95,9 @@ function defineClientCallbacks(gamesHub) {
 function setTempMessage(paragraph, message, interval) {
     interval = interval || 3;
     paragraph.text(message);
+    if (interval === -1)
+        return;
+
     var counter = 0;
 
     var timer = setInterval(function () {
@@ -75,11 +108,23 @@ function setTempMessage(paragraph, message, interval) {
     }, 1000);
 }
 
-function AcceptInvitation() {
-   
+
+function onUserAcceptedInvitation(data) {
+    
+
 }
 
-function RejectInvitation() {
+function onUserRejectedInvitation(data) {
+    
+
+}
+
+
+function acceptInvitation() {
+    
+}
+
+function rejectInvitation() {
     
 }
 
@@ -98,28 +143,91 @@ function onUserJoinedSite(data) {
     });
 
     if (!targetRow.length) {
-        var row = $("<tr></tr>").attr("data-email", email);
-        row.append($("<td></td>").text(name));
-        row.append($("<td></td>").text(data.Status));
-        tableUsers.append(row);
+        addUserToTable(tableUsers, data);
         setTempMessage($("#mu"), "User " + name + " joined the site");
     }
 }
 
-
+// field size will be added
 function onHandleInvitation(data) {
+    console.log("Got invitation from " + data.UserName);
+    var mcontact = $("#mcontact");
+
+    if ($("#btnAccept").length)
+        return;
+
+    mcontact.text(data.UserName + " has invited u in game. Wanna accept?").attr("style", "font-size:12px;");
     
+    var btnAccept = $("<button>").addClass("btn btn-default").attr("id", "btnAccept").on("click", function () {
+        // send to server
+
+        // clear markup
+        var temp = $(".contact").find("#temp");
+        if (temp)
+            temp.remove();
+
+        if (window.timer) {
+            clearInterval(window.timer);
+            window.timer = null;
+        }     
+        console.log("accept clicked");
+        $(".contact").css("display", "none");
+    });
+    btnAccept.append($("<span>").text("Accept").attr("style", "font-size:12px;"));
+
+    var btnReject = $("<button>").addClass("btn btn-default").attr("id", "btnReject").on("click", function () {
+
+        // send to server
+
+
+        // clear markup
+        var temp = $(".contact").find("#temp");
+        if (temp)
+            temp.remove();
+
+        if (window.timer) {
+            clearInterval(window.timer);
+            window.timer = null;
+        }
+
+        $(".contact").css("display", "none");
+        console.log("reject clicked");
+    });
+//    btnReject.height(30);
+    btnReject.append($("<span>").text("Reject").attr("style", "font-size:12px;"));
+    btnReject.css("margin-right", "3px");
+
+    var temp = $("<div>").attr("id", "temp").css("display","inline-block");
+    temp.append(btnReject).append(btnAccept);
+    $(".contact").css("display", "block").append(temp);
+
+    var counter = 0;
+    window.timer = setInterval(function() {
+        counter++;
+        if (counter === 10) {
+            var temp = $("#temp");
+            if (temp) {
+                temp.remove();
+                $(".contact").css("display", "none");
+                $("#mcontact").text("");
+                clearInterval(timer);
+            }
+        }
+    }, 1000);
+
+}
+
+
+function onHandleException(data) {
+    console.log("Exception in " + data.MethodName + ":\n");
+    console.log(data.Exception);
 }
 
 
 // not tested
 function onStatusChanged(data) {
-    if (data.Exception) {
-        console.log(data.Exception);
-        return;
-    }
 
-    var rows = $("#tableUsers").filter(function() {
+    var rows = $("#tableUsers").filter(function () {
         return $(this).data("email") === data.UserEmail;
     });
 

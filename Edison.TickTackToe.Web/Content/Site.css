@@ -68,6 +68,11 @@ footer {
     text-align: center;
 }
 
+/* replace with single selector */
+#tableUsers td:nth-child(1), #tableUsers td:nth-child(2) {
+    padding-top: 12px;
+}
+
 .game {
     border-left: 1px solid red;
     width: 80%;
@@ -84,8 +89,13 @@ footer {
 }
 
 .contact {
-    display: none;
+    display: inline-block;
     float: left;
-    width: 35%;
     height: 30px;
+    padding-top: 4px;
 }
+
+#mcontact {
+    display: inline-block;
+}
+

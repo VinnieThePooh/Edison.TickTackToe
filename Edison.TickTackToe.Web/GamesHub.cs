@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -12,10 +13,23 @@ using Microsoft.AspNet.SignalR;
 
 namespace Edison.TickTackToe.Web
 {
+    [System.Web.Mvc.Authorize]
     public class GamesHub : Hub
     {
+
+        private async Task ActualizeConnectionId()
+        {
+            var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
+            var userName = Context.User.Identity.Name;
+            var user = context.Users.Single(u => u.UserName.Equals(userName));
+            user.ConnectionId = Context.ConnectionId;
+            await context.SaveChangesAsync();
+        }
+
+
         public async Task<IEnumerable<UserProjection>> GetOnlineUsers()
         {
+            await ActualizeConnectionId();
             return await Task.FromResult(MvcApplication.OnlineUsers);
         }
 
@@ -37,7 +51,7 @@ namespace Edison.TickTackToe.Web
                var fromStaticList = MvcApplication.OnlineUsers.Single(u => u.Email.Equals(userEmail));
                fromStaticList.Status = targetStatus.Name;
 
-               // we do not wait db updating
+               // do not wait db updating
                Clients.All.statusChanged(new { UserEmail = userEmail, StatusCode = newStatus });
 
                user.IdGameStatus = targetStatus.StatusId;
@@ -45,8 +59,46 @@ namespace Edison.TickTackToe.Web
             }
             catch (Exception e)
             {
-                Clients.Caller.statusChanged(new {Exception = e.ToString()});
+                Clients.Caller.handleException(new {Exception = e.ToString(), MethodName = nameof(ChangeStatus)});
             }
         }
+
+        public async Task InviteUser(string userName)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userName))
+                      throw new ArgumentNullException(nameof(userName));
+
+                var initiator = Context.User.Identity.Name;
+                var toBeInvited = await GetUserByName(userName);
+                Clients.Client(toBeInvited.ConnectionId).invitationArrived(new {UserName = initiator});
+            }
+
+            catch (Exception e)
+            {
+                Clients.Caller.handleException(new {MethodName = nameof(InviteUser), Exception = e.ToString()});
+            }
+        }
+
+
+        public async Task AcceptInvitation(string invitatorName)
+        {
+
+
+        }
+
+        
+        public async Task RejectInvitation(string invitatorName)
+        {
+
+        }
+
+        private async Task<Member> GetUserByName(string userName)
+        {
+            var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
+            return await  context.Users.SingleAsync(u => u.UserName.Equals(userName));
+        }
+
     }
 }

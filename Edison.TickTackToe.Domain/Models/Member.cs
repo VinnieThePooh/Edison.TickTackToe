@@ -16,5 +16,7 @@ namespace Edison.TickTackToe.Domain.Models
         public virtual List<Game>  Games { get; set; }
 
         public MemberStatus Status { get; set; }
+
+        public string ConnectionId { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Edison.TickTackToe.Web.Controllers
 {
+    [Authorize]
     public class GamesController : Controller
     {
         // GET: Game

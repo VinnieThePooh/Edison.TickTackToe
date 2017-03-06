@@ -250,7 +250,7 @@ namespace Edison.TickTackToe.Web.Controllers
             {
                 return Redirect(returnUrl);
             }
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Games");
         }
 
         #endregion
