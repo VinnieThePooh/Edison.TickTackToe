@@ -33,6 +33,7 @@ footer {
     bottom: 0;
     height: 60px;
     border-top: 1px solid #cccccc;
+    /*background-color: white; */
 }
 
 .wrapper {
@@ -51,15 +52,14 @@ footer {
     margin-bottom: 0;
 }
 
-
-
 .users {
     border-right: 1px solid #cccccc;
     float: left;
     width: 20%;
     height: auto;
     max-height: 1024px;
-    overflow: auto;
+    overflow: hidden;
+    padding-bottom: 700px;
     <!-- max-width: 300px; -->
     
 }

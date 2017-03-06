@@ -21,8 +21,6 @@
     defineClientCallbacks(gamesHub);
     initHandlers();
 
-
-
     $.connection.hub.start().done(function() {
         console.log("Hub: connection started");
 
@@ -81,6 +79,7 @@ function addUserToTable(table, user) {
 
 function defineClientCallbacks(gamesHub) {
     var client = gamesHub.client;
+    
     client.userJoinedSite = onUserJoinedSite;
     client.userLeftSite = onUserLeftSite;
     client.statusChanged = onStatusChanged;
@@ -88,6 +87,8 @@ function defineClientCallbacks(gamesHub) {
     client.handleException = onHandleException;
     client.userAcceptedInvitation = onUserAcceptedInvitation;
     client.userRejectedInvitation = onUserRejectedInvitation;
+    client.beginNewGame = onBeginNewGame;
+    client.playersStatusChanged = onPlayersStatusChanged;
 }
 
 
@@ -111,7 +112,17 @@ function setTempMessage(paragraph, message, interval) {
 
 function onUserAcceptedInvitation(data) {
     // begin game here
-    setTempMessage($("#mcontact"), data.UserName + " accepted your invitation");
+    setTempMessage($("#mcontact"), data.OpponentName + " accepted your invitation");
+    // create manager here to track new game
+
+    var oppName = data.OpponentName;
+    var invName = $("#tableUsers").data("name");
+    var gameId = data.GameId;
+    var manager = new GameManager($.connection.gamesHub, invName, oppName, invName, gameId);
+
+    // call beginNewGameHere
+
+
 }
 
 function onUserRejectedInvitation(data) {
@@ -136,6 +147,25 @@ function onUserJoinedSite(data) {
         setTempMessage($("#mu"), "User " + name + " joined the site");
     }
 }
+
+
+function onPlayersStatusChanged(data) {
+    console.log("onPlayersStatusChanged was called");
+
+    var invName = data.InvitatorName;
+    var oppName = data.OpponentName;
+    var statusCode = data.StatusCode;
+
+}
+
+
+function onBeginNewGame(data) {
+    var invName = data.InvitatorName;
+
+    // currentUser
+    var oppName = $("#tableUsers").data("name");
+}
+
 
 // field size will be added
 function onHandleInvitation(data) {
@@ -215,6 +245,28 @@ function onHandleException(data) {
 }
 
 
+function startNewGame()
+{
+    
+}
+
+
+function createPlayingField(fieldSize) {
+    fieldSize = fieldSize || 3;
+
+    var table = $("<table>").attr("id", "field");
+    var tbody = $("<tbody>");
+
+    for (var index = 0; index < fieldSize; index ++) {
+        var row = $("<tr>");
+        for (var j = 0; j < fieldSize; j++)
+            row.append($("<td>").addClass("cell").width(40).height(40));
+        tbody.append(row);
+    }
+    return table.append(tbody);
+}
+
+
 // not tested
 function onStatusChanged(data) {
 
@@ -248,5 +300,21 @@ function onUserLeftSite(data) {
     if (targetRow) {
         targetRow.remove();
         setTempMessage($("#mu"), "User " + name + " left the site");
+    }
+}
+
+//
+// GameManager here
+//
+function GameManager(hub, invName, oppName, curUserName, gid, fsize) {
+    var gamesHub = hub;
+    var invitatorName = invName;
+    var currentUserName = curUserName;
+    var gameId = gid;
+    var fieldSize = fsize || 3;
+    
+    this.makeStep = function (figureId) {
+        // hub does something +
+        // + gui
     }
 }

@@ -82,10 +82,30 @@ namespace Edison.TickTackToe.Web
         }
 
 
+
+        // todo: create make some manager for game
         public async Task AcceptInvitation(string invitatorName)
         {
-            var targetUser = await GetUserByName(invitatorName);
-            Clients.Client(targetUser.ConnectionId).userAcceptedInvitation(new { UserName = Context.User.Identity.Name });
+            try
+            {
+               var invitator = await GetUserByName(invitatorName);
+               var opponent = await GetUserByName(Context.User.Identity.Name);
+
+                var oppId = opponent.ConnectionId;
+                var invId = invitator.ConnectionId;
+
+               var id = await CreateNewGame(invitator, opponent);
+
+                // on this client beginNewGame will be called inside this accepting callback
+                // his own name will be taken from client
+                Clients.Client(invId).userAcceptedInvitation(new { OpponentName = Context.User.Identity.Name, GameId = id });
+                Clients.Caller.beginNewGame(new { InvitatorName = invitatorName, GameId = id });
+                Clients.AllExcept(oppId, invId).playersStatusChanged(new {InvitatorName = invitatorName, OpponentName = opponent.UserName, StatusCode = (int)StatusCode.Playing});
+            }
+            catch (Exception e)
+            {
+                Clients.Caller.handleException(new { MethodName = nameof(AcceptInvitation), Exception = e.ToString() });
+            }
         }
 
         
@@ -93,13 +113,35 @@ namespace Edison.TickTackToe.Web
         {
             var targetUser = await GetUserByName(invitatorName);
             Clients.Client(targetUser.ConnectionId).userRejectedInvitation(new { UserName = Context.User.Identity.Name });
-
         }
 
         private async Task<Member> GetUserByName(string userName)
         {
             var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
             return await  context.Users.SingleAsync(u => u.UserName.Equals(userName));
+        }
+
+        /// <summary>
+        /// Returns newly created game id
+        /// </summary>
+        /// <param name="invitator"></param>
+        /// <param name="opponent"></param>
+        /// <param name="fieldSize"></param>
+        /// <returns></returns>
+        private async Task<int> CreateNewGame(Member invitator, Member opponent, int fieldSize = 3)
+        {
+            // quess context is a singletone
+            var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
+            var game = new Game
+            { 
+                OpponentUserName = opponent.UserName,
+                GameBeginningDate = DateTime.Now,
+                // 3 by default now
+                FieldSize = fieldSize
+            };
+            invitator.Games.Add(game);
+            await context.SaveChangesAsync();
+            return game.GameId; 
         }
 
     }
