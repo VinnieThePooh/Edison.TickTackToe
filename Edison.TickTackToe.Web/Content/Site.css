@@ -77,8 +77,15 @@ footer {
     border-left: 1px solid red;
     width: 80%;
     float: right;
-    padding-left: 15px;
+    padding: 15px;
+    padding-top: 5px;
 }
+
+.game h2 {
+    margin-top: 5px;
+    position: relative;
+}
+
 
 
 .messageBox {
@@ -89,13 +96,15 @@ footer {
 }
 
 .contact {
-    display: inline-block;
-    float: left;
+    position: absolute;
+    left: 10px;
     height: 30px;
+    font-size: 12px;
     padding-top: 4px;
+    max-width: 400px;
 }
 
 #mcontact {
     display: inline-block;
+    margin-right: 5px;
 }
-

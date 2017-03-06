@@ -110,24 +110,13 @@ function setTempMessage(paragraph, message, interval) {
 
 
 function onUserAcceptedInvitation(data) {
-    
-
+    // begin game here
+    setTempMessage($("#mcontact"), data.UserName + " accepted your invitation");
 }
 
 function onUserRejectedInvitation(data) {
-    
-
+    setTempMessage($("#mcontact"), data.UserName + " rejected your invitation");
 }
-
-
-function acceptInvitation() {
-    
-}
-
-function rejectInvitation() {
-    
-}
-
 
 
 //
@@ -160,6 +149,7 @@ function onHandleInvitation(data) {
     
     var btnAccept = $("<button>").addClass("btn btn-default").attr("id", "btnAccept").on("click", function () {
         // send to server
+        $.connection.gamesHub.server.acceptInvitation(data.UserName);
 
         // clear markup
         var temp = $(".contact").find("#temp");
@@ -169,16 +159,18 @@ function onHandleInvitation(data) {
         if (window.timer) {
             clearInterval(window.timer);
             window.timer = null;
-        }     
+        }
+        $("#mcontact").text("");
         console.log("accept clicked");
-        $(".contact").css("display", "none");
     });
     btnAccept.append($("<span>").text("Accept").attr("style", "font-size:12px;"));
+
+
 
     var btnReject = $("<button>").addClass("btn btn-default").attr("id", "btnReject").on("click", function () {
 
         // send to server
-
+        $.connection.gamesHub.server.rejectInvitation(data.UserName);
 
         // clear markup
         var temp = $(".contact").find("#temp");
@@ -190,7 +182,7 @@ function onHandleInvitation(data) {
             window.timer = null;
         }
 
-        $(".contact").css("display", "none");
+        $("#mcontact").text("");
         console.log("reject clicked");
     });
 //    btnReject.height(30);
@@ -208,7 +200,6 @@ function onHandleInvitation(data) {
             var temp = $("#temp");
             if (temp) {
                 temp.remove();
-                $(".contact").css("display", "none");
                 $("#mcontact").text("");
                 clearInterval(timer);
             }

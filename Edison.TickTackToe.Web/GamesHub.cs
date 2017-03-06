@@ -84,13 +84,15 @@ namespace Edison.TickTackToe.Web
 
         public async Task AcceptInvitation(string invitatorName)
         {
-
-
+            var targetUser = await GetUserByName(invitatorName);
+            Clients.Client(targetUser.ConnectionId).userAcceptedInvitation(new { UserName = Context.User.Identity.Name });
         }
 
         
         public async Task RejectInvitation(string invitatorName)
         {
+            var targetUser = await GetUserByName(invitatorName);
+            Clients.Client(targetUser.ConnectionId).userRejectedInvitation(new { UserName = Context.User.Identity.Name });
 
         }
 
