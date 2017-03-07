@@ -1,2 +1,2 @@
 # Edison.TickTackToe
-Браузерная версия игры Крестики-нолики
+Browser version of game Tick-Tack-Toe 
