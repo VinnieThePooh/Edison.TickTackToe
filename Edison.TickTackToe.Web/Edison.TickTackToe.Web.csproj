@@ -231,6 +231,11 @@
   <ItemGroup>
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\Images\c1 .png" />
+    <Content Include="Content\Images\c2.png" />
+    <Content Include="Content\Images\n1.png" />
+    <Content Include="Content\Images\n2.png" />
+    <Content Include="Content\Images\n3.png" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -241,7 +246,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
-    <Content Include="Scripts\GameManager.js" />
     <Content Include="Scripts\gamesentry.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />

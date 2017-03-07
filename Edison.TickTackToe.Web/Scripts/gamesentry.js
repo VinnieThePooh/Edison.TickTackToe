@@ -1,19 +1,22 @@
-﻿$(function() {
-    window.EnumMapper = function() {
-        
-        this.fromInt = {
-            "0": "Idle",
-            "1": "Playing",
-            "2": "Offline"
-        };
+﻿var gameManager = null;
+var EnumMapper = {
 
-        this.enumMapper.fromString = {
-            "Idle": 0,
-            "Playing": 1,
-            "Offline": 2
-    };
-    };
+    fromInt: {
+        "0": "Idle",
+        "1": "Playing",
+        "2": "Offline"
+    },
 
+    fromString: {
+        "Idle": 0,
+        "Playing": 1,
+        "Offline": 2
+    }
+};
+
+
+$(function () {
+    
     console.log("was downloaded");
     var gamesHub = $.connection.gamesHub;
 
@@ -66,9 +69,9 @@ function addUserToTable(table, user) {
         });
 
         row.append($("<td>").append(button));
-        if (user.Status === "Idle")
-            button.attr("disabled", false);
-        else button.attr("disabled", true);
+        if (user.Status !== "Idle" || gameManager)
+            button.attr("disabled", true);
+        else button.attr("disabled", false);
     } else {
         row.append("<td>");
     }
@@ -111,28 +114,49 @@ function setTempMessage(paragraph, message, interval) {
 
 
 function onUserAcceptedInvitation(data) {
-    // begin game here
     setTempMessage($("#mcontact"), data.OpponentName + " accepted your invitation");
-    // create manager here to track new game
-
-    var oppName = data.OpponentName;
+    
+    // changes status here
     var invName = $("#tableUsers").data("name");
+    var oppName = data.OpponentName;
+
+    // direct callback call to change status
+    var par = { InvitatorName: invName, OpponentName: oppName, GameId: data.GameId, StatusCode: 1 };
+    onPlayersStatusChanged(par);
+    setDisableStateUsersTable(true);
+
+    // create manager here to track new game
     var gameId = data.GameId;
-    var manager = new GameManager($.connection.gamesHub, invName, oppName, invName, gameId);
-
-    // call beginNewGameHere
-
-
+    gameManager = new GameManager($.connection.gamesHub, invName, oppName, invName, gameId);
+    gameManager.startGame();
 }
 
-function onUserRejectedInvitation(data) {
-    setTempMessage($("#mcontact"), data.UserName + " rejected your invitation");
+
+function findRowByUserName(name) {
+    var rows = $("#tableUsers tr").filter(function () {
+        return $(this).find("td:eq(0)").text() === name;
+    });
+    if (rows)
+        return rows.first();
+    return null;
 }
+
+
+function setDisableStateUsersTable(flag) {
+    $("#tableUsers").find("button").each(function() {
+        $(this).attr("disabled",flag);
+    });
+}
+
 
 
 //
 // callbacks
 //
+function onUserRejectedInvitation(data) {
+    setTempMessage($("#mcontact"), data.UserName + " rejected your invitation");
+}
+
 function onUserJoinedSite(data) {
     var email = data.Email;
     var name = data.Name;
@@ -156,14 +180,38 @@ function onPlayersStatusChanged(data) {
     var oppName = data.OpponentName;
     var statusCode = data.StatusCode;
 
+    var status = EnumMapper.fromInt[statusCode];
+
+    var invRow = findRowByUserName(invName);
+    if (invRow.length) {
+        invRow.find("td:eq(1)").text(status);
+        var button = invRow.find("button");
+        button.length && button.attr("disabled", true);
+    }
+
+    var oppRow = findRowByUserName(oppName);
+    if (oppRow.length) {
+        oppRow.find("td:eq(1)").text(status);
+        var oppButton = oppRow.find("button");
+        oppButton.length && oppButton.attr("disabled", true);
+    }
 }
+
 
 
 function onBeginNewGame(data) {
     var invName = data.InvitatorName;
-
     // currentUser
     var oppName = $("#tableUsers").data("name");
+
+    // change status here
+    // direct callback call to change status
+    var par = { InvitatorName: invName, OpponentName: oppName, GameId: data.GameId, StatusCode: 1 };
+    onPlayersStatusChanged(par);
+    setDisableStateUsersTable(true);
+
+    gameManager = new GameManager($.connection.gamesHub, invName, oppName, oppName, data.GameId);
+    gameManager.startGame();
 }
 
 
@@ -245,28 +293,6 @@ function onHandleException(data) {
 }
 
 
-function startNewGame()
-{
-    
-}
-
-
-function createPlayingField(fieldSize) {
-    fieldSize = fieldSize || 3;
-
-    var table = $("<table>").attr("id", "field");
-    var tbody = $("<tbody>");
-
-    for (var index = 0; index < fieldSize; index ++) {
-        var row = $("<tr>");
-        for (var j = 0; j < fieldSize; j++)
-            row.append($("<td>").addClass("cell").width(40).height(40));
-        tbody.append(row);
-    }
-    return table.append(tbody);
-}
-
-
 // not tested
 function onStatusChanged(data) {
 
@@ -276,7 +302,7 @@ function onStatusChanged(data) {
 
     if (rows) {
         var row = rows.first();
-        row.find("td:eq(1)").text(window.EnumMapper.fromInt(data.StatusCode.toString()));
+        row.find("td:eq(1)").text(EnumMapper.fromInt[data.StatusCode]);
 
         var button = row.find("button");
         
@@ -303,6 +329,7 @@ function onUserLeftSite(data) {
     }
 }
 
+
 //
 // GameManager here
 //
@@ -312,9 +339,109 @@ function GameManager(hub, invName, oppName, curUserName, gid, fsize) {
     var currentUserName = curUserName;
     var gameId = gid;
     var fieldSize = fsize || 3;
+    var figureName = getFigureName(curUserName, oppName);
+    var oppFigureName = figureName === "nought" ? "cross" : "nought";
+
+    this.startGame = function() {
+        createPlayingField();
+        if (currentUserName === invitatorName)
+            setTempMessage($("#mg"), "Opponent makes a step first", -1);
+        else 
+            setTempMessage($("#mg"), "Your make first step", -1);
+
+        var cells = $(".cell");
+        cells.off();
+        cells.mouseenter(function() {
+            var th = $(this);
+            console.log("was hovered");
+            if (th.hasClass(figureName) || th.hasClass(oppFigureName))
+                th.css("cursor", "not-allowed");
+            else th.css("cursor", "default");
+        });
+        cells.on("click", function () {
+            console.log("figure was clicked");
+            var th = $(this); 
+            if (th.hasClass(figureName) || th.hasClass(oppFigureName))
+                return;
+
+            th.addClass(figureName);
+
+            var container = $("<div>")
+                .width(90)
+                .height(90)
+                .css("margin", "auto")
+                .css("margin-top", "4px")
+                .css("background-image", 'url(' + getImageUrl() + ")")
+                .css("background-repeat", "no-repeat");
+            th.append(container);
+        });
+
+        
+    }
+
+    function getImageUrl() {
+        var base = "../Content/Images/";
+        return figureName === "cross" ? base + "c2.png" : base + "n2.png";
+    }
     
     this.makeStep = function (figureId) {
         // hub does something +
         // + gui
+    }
+
+    // implementation details
+    function getFigureName(cuName, oppName) {
+        return cuName === oppName ? "nought" : "cross";
+    }
+    
+    function createPlayingField(fieldSize) {
+        fieldSize = fieldSize || 3;
+
+        var gameWrapper = $("<div>")
+            .attr("id", "gameWrapper")
+            .css("width", "100%")
+            .css("position","relative");
+
+        var table = $("<table>").attr("id", "field").addClass("table-bordered")
+            .css("margin-top", "10px")
+            .css("margin-bottom", "10px")
+            .css("margin-left", "auto")
+            .css("margin-right", "auto")
+            .css("font-size", "16px")
+            .addClass("text-info");
+
+        
+        var tbody = $("<tbody>");
+
+        for (var index = 0; index < fieldSize; index++) {
+            var row = $("<tr>");
+            for (var j = 0; j < fieldSize; j++)
+                row.append($("<td>").addClass("cell").width(100).height(100));
+            tbody.append(row);
+        }
+
+        tbody.find("td").last().addClass("nought");
+
+        table.append(tbody);
+
+        var existed = $(".game").find("table#field");
+
+        // todo: remake
+        // or just reuse
+        if (existed)
+            existed.remove();
+
+        var span = $("<span>").attr("id", "mg")
+            .css("float", "left")
+            .css("font-size", "16px")
+            .css("max-width", "300px")
+            .css("position", "absolute")
+            .css("left", "5px")
+            .addClass("text-info");
+
+        gameWrapper.append(span);
+        gameWrapper.append(table);
+
+        return $(".game").append(gameWrapper);
     }
 }
