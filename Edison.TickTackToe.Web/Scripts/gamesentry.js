@@ -92,11 +92,12 @@ function defineClientCallbacks(gamesHub) {
     client.userRejectedInvitation = onUserRejectedInvitation;
     client.beginNewGame = onBeginNewGame;
     client.playersStatusChanged = onPlayersStatusChanged;
+    client.userMadeStep = onUserMadeStep;
 }
 
 
 
-function setTempMessage(paragraph, message, interval) {
+function setTempMessage(paragraph, message, interval, newMessage) {
     interval = interval || 3;
     paragraph.text(message);
     if (interval === -1)
@@ -108,6 +109,7 @@ function setTempMessage(paragraph, message, interval) {
         if (counter++ == interval) {
             paragraph.text("");
             clearInterval(timer);
+            paragraph.text(newMessage);
         };
     }, 1000);
 }
@@ -149,7 +151,17 @@ function setDisableStateUsersTable(flag) {
 }
 
 
-
+function addFigureToCell(cell, figureName) {
+    cell.addClass(figureName);
+    var container = $("<div>")
+        .width(90)
+        .height(90)
+        .css("margin", "auto")
+        .css("margin-top", "5px")
+        .css("background-image", 'url(' + gameManager.getImageUrl(figureName) + ")")
+        .css("background-repeat", "no-repeat");
+    cell.append(container);
+}
 //
 // callbacks
 //
@@ -283,14 +295,25 @@ function onHandleInvitation(data) {
             }
         }
     }, 1000);
-
 }
+
+
+function onUserMadeStep(data) {
+    var ci = data.ColumnIndex;
+    var ri = data.RowIndex;
+
+    var cell = $("#field").find(".cell[data-ri='" + ri + "'][data-ci='" + ci + "']");
+    addFigureToCell(cell, gameManager.oppFigureName);
+    setTempMessage($("#mg"), "Opponent made step", 1, "Your turn to make a step");
+}
+
 
 
 function onHandleException(data) {
     console.log("Exception in " + data.MethodName + ":\n");
     console.log(data.Exception);
 }
+
 
 
 // not tested
@@ -333,16 +356,20 @@ function onUserLeftSite(data) {
 //
 // GameManager here
 //
+//todo: refactor
 function GameManager(hub, invName, oppName, curUserName, gid, fsize) {
+    var instance = this;
+
     var gamesHub = hub;
     var invitatorName = invName;
     var currentUserName = curUserName;
     var gameId = gid;
     var fieldSize = fsize || 3;
-    var figureName = getFigureName(curUserName, oppName);
-    var oppFigureName = figureName === "nought" ? "cross" : "nought";
+    this.figureName = getFigureName(curUserName, oppName);
+    this.oppFigureName = this.figureName === "nought" ? "cross" : "nought";
+    var map = createMatrix();
 
-    this.startGame = function() {
+    this.startGame = function () {
         createPlayingField();
         if (currentUserName === invitatorName)
             setTempMessage($("#mg"), "Opponent makes a step first", -1);
@@ -354,44 +381,49 @@ function GameManager(hub, invName, oppName, curUserName, gid, fsize) {
         cells.mouseenter(function() {
             var th = $(this);
             console.log("was hovered");
-            if (th.hasClass(figureName) || th.hasClass(oppFigureName))
+            if (th.hasClass(instance.figureName) || th.hasClass(instance.oppFigureName))
                 th.css("cursor", "not-allowed");
             else th.css("cursor", "default");
         });
         cells.on("click", function () {
             console.log("figure was clicked");
-            var th = $(this); 
-            if (th.hasClass(figureName) || th.hasClass(oppFigureName))
+            var th = $(this);
+            if (th.hasClass(instance.figureName) || th.hasClass(instance.oppFigureName))
                 return;
 
-            th.addClass(figureName);
-
-            var container = $("<div>")
-                .width(90)
-                .height(90)
-                .css("margin", "auto")
-                .css("margin-top", "4px")
-                .css("background-image", 'url(' + getImageUrl() + ")")
-                .css("background-repeat", "no-repeat");
-            th.append(container);
+            instance.makeStep(th.data("ri"), th.data("ci"));
+            addFigureToCell(th, instance.figureName);
         });
-
-        
     }
 
-    function getImageUrl() {
+    this.getImageUrl = function(figureName) {
         var base = "../Content/Images/";
         return figureName === "cross" ? base + "c2.png" : base + "n2.png";
     }
     
-    this.makeStep = function (figureId) {
-        // hub does something +
-        // + gui
+    this.makeStep = function (i, j) {
+        // may be fail and done callbacks are redundant?
+        gamesHub.server.makeStep(i, j, gameId).done(function() { // { rowIndex:i, colIndex:j, gameId: gameId}).done(function () {
+            console.log("figure sent");
+        }).fail(function() {
+            console.log("error while sending the figure");
+        });
     }
 
+    function createMatrix() {
+        var newMatrix = [];
+        for (var i = 0; i < fieldSize; i++) {
+            newMatrix.push([]);
+            for (var j = 0; j < fieldSize; j++) {
+                newMatrix[i].push(-1);
+            }
+        }
+        return newMatrix;
+    }
+    
     // implementation details
     function getFigureName(cuName, oppName) {
-        return cuName === oppName ? "nought" : "cross";
+        return cuName === oppName ? "cross" : "nought";
     }
     
     function createPlayingField(fieldSize) {
@@ -413,10 +445,12 @@ function GameManager(hub, invName, oppName, curUserName, gid, fsize) {
         
         var tbody = $("<tbody>");
 
-        for (var index = 0; index < fieldSize; index++) {
+        for (var i = 0; i < fieldSize; i++) {
             var row = $("<tr>");
             for (var j = 0; j < fieldSize; j++)
-                row.append($("<td>").addClass("cell").width(100).height(100));
+                row.append($("<td>").addClass("cell").width(100).height(100)
+                    .attr("data-ri", i)
+                    .attr("data-ci",j));
             tbody.append(row);
         }
 

@@ -24,7 +24,7 @@ namespace Edison.TickTackToe.Domain.Models
        public int FieldSize { get; set; }
        public DateTime GameBeginningDate { get; set; }
        public DateTime? GameEndingDate { get; set; }
-       public Member PlayerInitiator { get; set; }
+       public virtual Member PlayerInitiator { get; set; }
        public virtual List<GameStep> GameSteps { get; set; }
     }
 }

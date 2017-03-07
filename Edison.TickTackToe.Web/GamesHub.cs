@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Edison.TickTackToe.Domain.DataAccess;
 using Edison.TickTackToe.Domain.Infrastructure;
+using Edison.TickTackToe.Domain.Infrastructure.Handbooks;
 using Edison.TickTackToe.Domain.Models;
 using Edison.TickTackToe.Web.Models;
 using Microsoft.AspNet.Identity.Owin;
@@ -13,10 +14,10 @@ using Microsoft.AspNet.SignalR;
 
 namespace Edison.TickTackToe.Web
 {
+    // todo create some GameManager and aggregate methods
     [System.Web.Mvc.Authorize]
     public class GamesHub : Hub
     {
-
         private async Task ActualizeConnectionId()
         {
             var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
@@ -25,7 +26,6 @@ namespace Edison.TickTackToe.Web
             user.ConnectionId = Context.ConnectionId;
             await context.SaveChangesAsync();
         }
-
 
         public async Task<IEnumerable<UserProjection>> GetOnlineUsers()
         {
@@ -108,17 +108,77 @@ namespace Edison.TickTackToe.Web
             }
         }
 
-        
+
+        public async Task MakeStep(int rowIndex, int colIndex, int gameId)
+        {
+            try
+            {
+                var opponent = await AddStepToGame(rowIndex, colIndex, gameId, Context.User.Identity.Name);
+                Clients.Client(opponent.ConnectionId).userMadeStep(new {RowIndex = rowIndex, ColumnIndex = colIndex});
+            }
+            catch (Exception e)
+            {
+                Clients.Caller.handleException(new { MethodName = nameof(MakeStep), Exception = e.ToString() });
+            }
+        }
+
         public async Task RejectInvitation(string invitatorName)
         {
             var targetUser = await GetUserByName(invitatorName);
             Clients.Client(targetUser.ConnectionId).userRejectedInvitation(new { UserName = Context.User.Identity.Name });
         }
 
+        #region Implementation details
+
+        /// <summary>
+        /// Returns opponent
+        /// </summary>
+        /// <param name="rowIndex"></param>
+        /// <param name="columnIndex"></param>
+        /// <param name="gameId"></param>
+        /// <param name="userName"></param>
+        /// <returns></returns>
+        //todo: refactor
+        // figure name in not necessary in GameStep entity
+        private async Task<Member> AddStepToGame(int rowIndex, int columnIndex, int gameId, string userName)
+        {
+            Member opponent;
+            var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
+            var game = context.Games.Find(gameId);
+
+            // this method is not necessary
+            var figure = await GetFigure(userName, context, game);
+
+            var step = new GameStep()
+            {
+                PlayerName = userName,
+                XCoordinate = rowIndex,
+                YCoordinate = columnIndex,
+                IdFigure = figure.FigureId
+            };
+            game.GameSteps.Add(step);
+            await context.SaveChangesAsync();
+
+            if (game.PlayerInitiator.UserName.Equals(userName))
+                opponent = await GetUserByName(game.OpponentUserName);
+            else if (game.OpponentUserName.Equals(userName))
+                opponent = game.PlayerInitiator;
+            else throw new InvalidOperationException("Invalid user name");
+            return opponent;
+        }
+
+        private async Task<GameFigure> GetFigure(string userName, GameContext context, Game game)
+        {
+            if (userName.Equals(game.OpponentUserName))
+                   return await context.GameFigures.SingleOrDefaultAsync(f => f.Name.Equals(FigureNames.Cross));
+            return await context.GameFigures.SingleOrDefaultAsync(f => f.Name.Equals(FigureNames.Nought));
+        }
+        
+
         private async Task<Member> GetUserByName(string userName)
         {
             var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
-            return await  context.Users.SingleAsync(u => u.UserName.Equals(userName));
+            return await context.Users.SingleAsync(u => u.UserName.Equals(userName));
         }
 
         /// <summary>
@@ -133,7 +193,7 @@ namespace Edison.TickTackToe.Web
             // quess context is a singletone
             var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
             var game = new Game
-            { 
+            {
                 OpponentUserName = opponent.UserName,
                 GameBeginningDate = DateTime.Now,
                 // 3 by default now
@@ -141,8 +201,9 @@ namespace Edison.TickTackToe.Web
             };
             invitator.Games.Add(game);
             await context.SaveChangesAsync();
-            return game.GameId; 
+            return game.GameId;
         }
 
+        #endregion
     }
 }
