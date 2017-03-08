@@ -8,6 +8,7 @@ using Edison.TickTackToe.Domain.DataAccess;
 using Edison.TickTackToe.Domain.Infrastructure;
 using Edison.TickTackToe.Domain.Infrastructure.Handbooks;
 using Edison.TickTackToe.Domain.Models;
+using Edison.TickTackToe.Web.Infrastructure;
 using Edison.TickTackToe.Web.Models;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.AspNet.SignalR;
@@ -113,7 +114,20 @@ namespace Edison.TickTackToe.Web
         {
             try
             {
-                var opponent = await AddStepToGame(rowIndex, colIndex, gameId, Context.User.Identity.Name);
+                var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
+                var userName = Context.User.Identity.Name;
+                var opponent = await AddStepToGame(rowIndex, colIndex, gameId, userName);
+
+                var gameResolver = new GameResolver(context);
+                var result = await gameResolver.CheckGameState(gameId, userName);
+                if (result)
+                {
+                    var game = context.Games.Find(gameId);
+                    game.WinnerUserName = userName;
+                    game.GameEndingDate = DateTime.Now;
+                    await context.SaveChangesAsync();
+                }
+
                 Clients.Client(opponent.ConnectionId).userMadeStep(new {RowIndex = rowIndex, ColumnIndex = colIndex});
             }
             catch (Exception e)
@@ -136,7 +150,7 @@ namespace Edison.TickTackToe.Web
         /// <param name="rowIndex"></param>
         /// <param name="columnIndex"></param>
         /// <param name="gameId"></param>
-        /// <param name="userName"></param>
+        /// <param name="userName">Name of a use who made a step</param>
         /// <returns></returns>
         //todo: refactor
         // figure name in not necessary in GameStep entity
@@ -163,7 +177,7 @@ namespace Edison.TickTackToe.Web
                 opponent = await GetUserByName(game.OpponentUserName);
             else if (game.OpponentUserName.Equals(userName))
                 opponent = game.PlayerInitiator;
-            else throw new InvalidOperationException("Invalid user name");
+            else throw new ArgumentException("Invalid user name");
             return opponent;
         }
 
@@ -173,6 +187,8 @@ namespace Edison.TickTackToe.Web
                    return await context.GameFigures.SingleOrDefaultAsync(f => f.Name.Equals(FigureNames.Cross));
             return await context.GameFigures.SingleOrDefaultAsync(f => f.Name.Equals(FigureNames.Nought));
         }
+
+
         
 
         private async Task<Member> GetUserByName(string userName)
@@ -203,7 +219,6 @@ namespace Edison.TickTackToe.Web
             await context.SaveChangesAsync();
             return game.GameId;
         }
-
         #endregion
     }
 }

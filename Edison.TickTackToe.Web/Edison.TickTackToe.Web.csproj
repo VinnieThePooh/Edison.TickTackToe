@@ -207,6 +207,8 @@
     <Compile Include="Controllers\GameController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="GamesHub.cs" />
+    <Compile Include="Infrastructure\GameResolver.cs" />
+    <Compile Include="Infrastructure\GameState.cs" />
     <Compile Include="Infrastructure\OnlineUsersTracker.cs" />
     <Compile Include="ModelExtensions\MemberExtensions.cs" />
     <Compile Include="Models\UserProjection.cs" />
