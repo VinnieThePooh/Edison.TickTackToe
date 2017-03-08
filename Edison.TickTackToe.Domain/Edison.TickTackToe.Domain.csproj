@@ -63,6 +63,7 @@
     <Compile Include="DataAccess\DefaultConstraints.cs" />
     <Compile Include="DataAccess\GameContext.cs" />
     <Compile Include="DataAccess\Identities.cs" />
+    <Compile Include="Infrastructure\Handbooks\ConstantStrings.cs" />
     <Compile Include="Infrastructure\Handbooks\FigureNames.cs" />
     <Compile Include="Infrastructure\Handbooks\SchemaNames.cs" />
     <Compile Include="Infrastructure\Handbooks\StatusNames.cs" />

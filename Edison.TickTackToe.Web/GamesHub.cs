@@ -111,6 +111,7 @@ namespace Edison.TickTackToe.Web
         {
             try
             {
+                Game game;
                 var context = Context.Request.GetHttpContext().GetOwinContext().Get<GameContext>();
                 var userName = Context.User.Identity.Name;
                 var opponent = await AddStepToGame(rowIndex, colIndex, gameId, userName);
@@ -118,13 +119,24 @@ namespace Edison.TickTackToe.Web
                 var gameResolver = new GameResolver(context);
                 var result = await gameResolver.CheckGameState(gameId, userName);
                 if (result)
-                {
-                    var game = context.Games.Find(gameId);
+                {   
+                    game = context.Games.Find(gameId);
                     game.WinnerUserName = userName;
                     game.GameEndingDate = DateTime.Now;
                     await context.SaveChangesAsync();
                 }
 
+                game = context.Games.Find(gameId);
+                
+                // plain method of determing
+                //todo: remake it later
+                var stepsNumber = game.GameSteps.Count;
+                if (!result && stepsNumber == game.FieldSize*game.FieldSize)
+                {
+                    game.WinnerUserName = ConstantStrings.NobodyWon;
+                    game.GameEndingDate = DateTime.Now;
+                    await context.SaveChangesAsync();
+                }
                 Clients.Client(opponent.ConnectionId).userMadeStep(new {RowIndex = rowIndex, ColumnIndex = colIndex});
             }
             catch (Exception e)
@@ -137,6 +149,63 @@ namespace Edison.TickTackToe.Web
         {
             var targetUser = await GetUserByName(invitatorName, Context);
             Clients.Client(targetUser.ConnectionId).userRejectedInvitation(new { UserName = Context.User.Identity.Name });
+        }
+
+        // todo: refactor if possible
+        public async Task BeginNewGame(int gameId, int? toCont)
+        {
+           var gameContext = Context.Request.GetHttpContext().GetOwinContext().Get<GameContext>();
+           var userName = Context.User.Identity.Name;
+           var game = await gameContext.Games.FindAsync(gameId);
+
+            if (game.OpponentUserName.Equals(userName))
+            {
+                game.OppWannaProceed = toCont.HasValue;
+
+                if (!toCont.HasValue)
+                    if (game.InvWannaProceed.HasValue)
+                    {
+                        if (game.InvWannaProceed.Value)
+                            Clients.Client(game.PlayerInitiator.ConnectionId).playerRejectedToProceed();
+                    }
+                else if (game.InvWannaProceed.HasValue)
+                {
+                    if (game.InvWannaProceed.Value)
+                    {
+                        var opp = await GetUserByName(game.OpponentUserName, Context);
+                        var newInv = DefineNewInvitator(game, game.PlayerInitiator, opp);
+                        var newId = await CreateNewGame(newInv, newInv == opp ? game.PlayerInitiator: opp);
+                        Clients.Clients(new[] {opp.ConnectionId, game.PlayerInitiator.ConnectionId}).beginNewGame(new {InvitatorName = newInv.UserName, GameId = newId});
+                    }
+                }
+            }
+
+            if (game.PlayerInitiator.UserName.Equals(userName))
+            {
+                game.InvWannaProceed = toCont.HasValue;
+
+                if (!toCont.HasValue)
+                    if (game.OppWannaProceed.HasValue)
+                    {
+                        if (game.InvWannaProceed.Value)
+                        {
+                            var opp = await GetUserByName(game.OpponentUserName, Context);
+                            Clients.Client(opp.ConnectionId).playerRejectedToProceed();
+                        }
+                    }
+                else if (game.OppWannaProceed.HasValue)
+                {
+                    if (game.OppWannaProceed.Value)
+                    {
+                       var opp = await GetUserByName(game.OpponentUserName, Context);
+                       var newInv = DefineNewInvitator(game, game.PlayerInitiator, opp);
+                       var newId = await CreateNewGame(newInv, newInv == opp ? game.PlayerInitiator : opp);
+                       Clients.Clients(new[] { opp.ConnectionId, game.PlayerInitiator.ConnectionId }).beginNewGame(new { InvitatorName = newInv.UserName, GameId = newId });
+                    }
+                }
+            }
+            
+            await gameContext.SaveChangesAsync();
         }
 
         #region Implementation details
@@ -176,6 +245,17 @@ namespace Edison.TickTackToe.Web
                 opponent = game.PlayerInitiator;
             else throw new ArgumentException("Invalid user name");
             return opponent;
+        }
+
+
+
+        private Member DefineNewInvitator(Game game, Member prevInv, Member prevOpp)
+        {
+            if (game.WinnerUserName.Equals(ConstantStrings.NobodyWon))
+                return prevOpp;
+            if (game.WinnerUserName.Equals(prevInv.UserName))
+                return prevOpp;
+            return prevInv;
         }
 
         private async Task<GameFigure> GetFigure(string userName, GameContext context, Game game)

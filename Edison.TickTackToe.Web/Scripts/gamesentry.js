@@ -293,10 +293,6 @@ function onHandleInvitation(data) {
 
 function onUserMadeStep(data) {
    
-    // this one is added due to high intensive game consequences
-    if (gameManager.getWinnerUserName())
-        return;         
-
     var ci = data.ColumnIndex;
     var ri = data.RowIndex;
 
@@ -305,9 +301,18 @@ function onUserMadeStep(data) {
 
     gameManager.updateGameState(ci, ri, gameManager.oppFigureName);
     var oppName = gameManager.getYourOnlineEnemyName();
-    if (gameManager.resolveUser(oppName)) {
+    var userWon = gameManager.resolveUser(oppName);
+    if (userWon) {
         setTempMessage($("#mg"), "You lost. Wanna play once more?", -1);
         // u lost 
+        // propose to play once more
+        return;
+    }
+
+    var cu = gameManager.getCurrentUserName();
+    if (!gameManager.resolveUser(cu) && !gameManager.getUnsetItemsCount()) {
+        $("#mg").text("Nobody won. Wanna play once more?");
+        // draw
         // propose to play once more
         return;
     }
@@ -319,20 +324,6 @@ function onUserMadeStep(data) {
 function onHandleException(data) {
     console.log("Exception in " + data.MethodName + ":\n");
     console.log(data.Exception);
-
-    // костыль 
-    // HttpContext.Current is null sometimes
-    if (data.MethodName === "MakeStep") {
-        var gm = gameManager;
-
-        $.connection.gamesHub.server.makeStep(gm.lastMakeStepData.i, gm.lastMakeStepData.j, gm.getGameId()).done(function() {
-            console.log("figure sending repeated");
-        }).fail(function() {
-            console.log("error while resending the figure.");
-        });
-    }
-
-   // make the same for AcceptInvitation method
 }
 
 
@@ -372,7 +363,6 @@ function onHandleException(data) {
         }
     }
 
-
 //
 // GameManager here
 //
@@ -391,10 +381,18 @@ function onHandleException(data) {
         var map = createMatrix();
 
         this.lastMakeStepData = {};
+        this.getUnsetItemsCount = function() {
+            var counter = 0;
+            for(var i = 0; i < fieldSize; i++)
+                for (var j = 0; j < fieldSize; j++)
+                    if (map[i][j] === -1)
+                        counter++;
+            return counter;
+        };
 
         this.getGameId = function() {
             return gameId;
-        }
+        };
 
         this.startGame = function() {
             createPlayingField();
@@ -432,6 +430,12 @@ function onHandleException(data) {
                     // propose to play once more
                     return;
                 }
+
+                if (!instance.getUnsetItemsCount()) {
+                    $("#mg").text("Nobody won. Wanna play once more?");
+                    return;
+                }
+
                 $("#mg").text("Opponent's turn to make step");
             });
         }
@@ -457,6 +461,10 @@ function onHandleException(data) {
             return figureName === "cross" ? base + "c2.png" : base + "n2.png";
         };
 
+        this.getMap = function() {
+            return map;
+        }
+
         this.makeStep = function(i, j) {
             canMakeStep = !canMakeStep;
             // may be fail and done callbacks are redundant?
@@ -480,6 +488,7 @@ function onHandleException(data) {
 
         this.updateGameState = function(i, j, figureName) {
             map[i][j] = figureName === "cross" ? 1 : 0;
+            console.log("Cell[" + i + "," + j + "] was sent to: " + map[i][j]);
         };
 
         this.resolveUser = function(userName) {
@@ -505,6 +514,16 @@ function onHandleException(data) {
                     return flag;
             }
             return flag;
+        }
+
+        function createContinueButtons() {
+            var btnY = $("<button>").attr().addClass("btn btn-default").text("Yes").on("click", function () {
+                    
+            });
+
+            var btnN = $("<button>").addClass("btn btn-default").text("No").on("click", function () {
+                
+            });
         }
 
         function checkVert(targetDigit) {
