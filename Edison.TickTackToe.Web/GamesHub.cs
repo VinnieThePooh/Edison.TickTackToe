@@ -12,6 +12,7 @@ using Edison.TickTackToe.Web.Infrastructure;
 using Edison.TickTackToe.Web.Models;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.AspNet.SignalR;
+using Microsoft.AspNet.SignalR.Hubs;
 
 namespace Edison.TickTackToe.Web
 {
@@ -72,7 +73,7 @@ namespace Edison.TickTackToe.Web
                       throw new ArgumentNullException(nameof(userName));
 
                 var initiator = Context.User.Identity.Name;
-                var toBeInvited = await GetUserByName(userName);
+                var toBeInvited = await GetUserByName(userName, Context);
                 Clients.Client(toBeInvited.ConnectionId).invitationArrived(new {UserName = initiator});
             }
 
@@ -82,15 +83,13 @@ namespace Edison.TickTackToe.Web
             }
         }
 
-
-
-        // todo: create make some manager for game
+        // todo: make some manager for game or not?
         public async Task AcceptInvitation(string invitatorName)
         {
             try
             {
-               var invitator = await GetUserByName(invitatorName);
-               var opponent = await GetUserByName(Context.User.Identity.Name);
+               var invitator = await GetUserByName(invitatorName, Context);
+               var opponent = await GetUserByName(Context.User.Identity.Name, Context);
 
                 var oppId = opponent.ConnectionId;
                 var invId = invitator.ConnectionId;
@@ -114,7 +113,7 @@ namespace Edison.TickTackToe.Web
         {
             try
             {
-                var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
+                var context = Context.Request.GetHttpContext().GetOwinContext().Get<GameContext>();
                 var userName = Context.User.Identity.Name;
                 var opponent = await AddStepToGame(rowIndex, colIndex, gameId, userName);
 
@@ -132,13 +131,13 @@ namespace Edison.TickTackToe.Web
             }
             catch (Exception e)
             {
-                Clients.Caller.handleException(new { MethodName = nameof(MakeStep), Exception = e.ToString() });
+                Clients.Caller.handleException(new { MethodName = nameof(MakeStep), Exception = e.ToString(),  });
             }
         }
 
         public async Task RejectInvitation(string invitatorName)
         {
-            var targetUser = await GetUserByName(invitatorName);
+            var targetUser = await GetUserByName(invitatorName, Context);
             Clients.Client(targetUser.ConnectionId).userRejectedInvitation(new { UserName = Context.User.Identity.Name });
         }
 
@@ -174,7 +173,7 @@ namespace Edison.TickTackToe.Web
             await context.SaveChangesAsync();
 
             if (game.PlayerInitiator.UserName.Equals(userName))
-                opponent = await GetUserByName(game.OpponentUserName);
+                opponent = await GetUserByName(game.OpponentUserName, Context);
             else if (game.OpponentUserName.Equals(userName))
                 opponent = game.PlayerInitiator;
             else throw new ArgumentException("Invalid user name");
@@ -188,12 +187,9 @@ namespace Edison.TickTackToe.Web
             return await context.GameFigures.SingleOrDefaultAsync(f => f.Name.Equals(FigureNames.Nought));
         }
 
-
-        
-
-        private async Task<Member> GetUserByName(string userName)
+        private async Task<Member> GetUserByName(string userName, HubCallerContext hubContext)
         {
-            var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
+            var context = hubContext.Request.GetHttpContext().GetOwinContext().Get<GameContext>();
             return await context.Users.SingleAsync(u => u.UserName.Equals(userName));
         }
 

@@ -22,7 +22,6 @@ $(function () {
 
     // init
     defineClientCallbacks(gamesHub);
-    initHandlers();
 
     $.connection.hub.start().done(function() {
         console.log("Hub: connection started");
@@ -41,12 +40,6 @@ $(function () {
             });
     });
 });
-
-function  initHandlers()
-{
-    
-}
-
 
 
 // difine own functions here
@@ -106,7 +99,7 @@ function setTempMessage(paragraph, message, interval, newMessage) {
     var counter = 0;
 
     var timer = setInterval(function () {
-        if (counter++ == interval) {
+        if (counter++ === interval) {
             paragraph.text("");
             clearInterval(timer);
             paragraph.text(newMessage);
@@ -299,6 +292,11 @@ function onHandleInvitation(data) {
 
 
 function onUserMadeStep(data) {
+   
+    // this one is added due to high intensive game consequences
+    if (gameManager.getWinnerUserName())
+        return;         
+
     var ci = data.ColumnIndex;
     var ri = data.RowIndex;
 
@@ -313,10 +311,9 @@ function onUserMadeStep(data) {
         // propose to play once more
         return;
     }
-    setTempMessage($("#mg"), "Opponent's made a step", 1, "Your turn to make a step");
+    setTempMessage($("#mg") , "Your turn to make a step",-1);
     gameManager.inverseCanMakeStep();
 }
-
 
 
 function onHandleException(data) {
@@ -325,251 +322,267 @@ function onHandleException(data) {
 }
 
 
-
 // not tested
-function onStatusChanged(data) {
+    function onStatusChanged(data) {
 
-    var rows = $("#tableUsers").filter(function () {
-        return $(this).data("email") === data.UserEmail;
-    });
+        var rows = $("#tableUsers").filter(function() {
+            return $(this).data("email") === data.UserEmail;
+        });
 
-    if (rows) {
-        var row = rows.first();
-        row.find("td:eq(1)").text(EnumMapper.fromInt[data.StatusCode]);
+        if (rows) {
+            var row = rows.first();
+            row.find("td:eq(1)").text(EnumMapper.fromInt[data.StatusCode]);
 
-        var button = row.find("button");
-        
-        if (data.StatusCode === 1) {
-            button.attr("disabled", true);
-        } else {
-            button.attr("disabled", false);
+            var button = row.find("button");
+
+            if (data.StatusCode === 1) {
+                button.attr("disabled", true);
+            } else {
+                button.attr("disabled", false);
+            }
         }
     }
-}
 
 
-function onUserLeftSite(data) {
-    var name = data.Name;
-    var email = data.Email;
+    function onUserLeftSite(data) {
+        var name = data.Name;
+        var email = data.Email;
 
-    var targetRow = $("#tableUsers tr").filter(function () {
-        return $(this).data("email") === email && $(this).find("td:eq(0)").text() === name;
-    });
+        var targetRow = $("#tableUsers tr").filter(function() {
+            return $(this).data("email") === email && $(this).find("td:eq(0)").text() === name;
+        });
 
-    if (targetRow) {
-        targetRow.remove();
-        setTempMessage($("#mu"), "User " + name + " left the site");
+        if (targetRow) {
+            targetRow.remove();
+            setTempMessage($("#mu"), "User " + name + " left the site");
+        }
     }
-}
 
 
 //
 // GameManager here
 //
 //todo: refactor
-function GameManager(hub, invName, oppName, curUserName, gid, fsize, cmStep) {
-    var instance = this;
-    var gamesHub = hub;
-    var invitatorName = invName;
-    var currentUserName = curUserName;
-    var gameId = gid;
-    var fieldSize = fsize || 3;
-    this.figureName = getFigureName(curUserName, oppName);
-    this.oppFigureName = this.figureName === "nought" ? "cross" : "nought";
-    var winnerUserName = null;
-    var canMakeStep = cmStep || false;
-    var map = createMatrix();
+    function GameManager(hub, invName, oppName, curUserName, gid, fsize, cmStep) {
+        var instance = this;
+        var gamesHub = hub;
+        var invitatorName = invName;
+        var currentUserName = curUserName;
+        var gameId = gid;
+        var fieldSize = fsize || 3;
+        this.figureName = getFigureName(curUserName, oppName);
+        this.oppFigureName = this.figureName === "nought" ? "cross" : "nought";
+        var winnerUserName = null;
+        var canMakeStep = cmStep || false;
+        var map = createMatrix();
 
-    this.startGame = function () {
-        createPlayingField();
-        if (currentUserName === invitatorName)
-            setTempMessage($("#mg"), "Opponent makes a step first", -1);
-        else 
-            setTempMessage($("#mg"), "You make first step", -1);
+        this.lastMakeStepData = {};
 
-        var cells = $(".cell");
-        cells.off();
-        cells.mouseenter(function() {
-            var th = $(this);
-            console.log("was hovered");
-            if (canMakeStep == false || th.hasClass(instance.figureName) || th.hasClass(instance.oppFigureName))
-                th.css("cursor", "not-allowed");
-            else th.css("cursor", "default");
-        });
+        this.getGameId = function() {
+            return gameId;
+        }
 
-        cells.on("click", function () {
-            console.log("figure was clicked");
-            var th = $(this);
-            if (canMakeStep === false || th.hasClass(instance.figureName) || th.hasClass(instance.oppFigureName))
-                return;
+        this.startGame = function() {
+            createPlayingField();
+            if (currentUserName === invitatorName)
+                setTempMessage($("#mg"), "Opponent makes a step first", -1);
+            else
+                setTempMessage($("#mg"), "You make first step", -1);
 
-            var i = th.data("ri");
-            var j = th.data("ci");
-            
-            instance.updateGameState(i, j, instance.figureName);
-            addFigureToCell(th, instance.figureName);
-            instance.makeStep(i, j);
-            var cUserName = instance.getCurrentUserName();
-            if (instance.resolveUser(cUserName)) {
-                setTempMessage($("#mg"), "You won!!!. Wanna play once more?", -1);
-                // propose to play once more
-                return;
-            }
-            $("#mg").text("Opponent's turn to make step");
-        });
-    }
- 
-    this.getOpponentName = function() {
-        return oppName;
-    };
+            var cells = $(".cell");
+            cells.off();
+            cells.mouseenter(function() {
+                var th = $(this);
+                console.log("was hovered");
+                if (canMakeStep == false || th.hasClass(instance.figureName) || th.hasClass(instance.oppFigureName))
+                    th.css("cursor", "not-allowed");
+                else th.css("cursor", "default");
+            });
 
-    this.getCurrentUserName = function() {
-        return currentUserName;
-    }
+            cells.on("click", function() {
+                console.log("figure was clicked");
+                var th = $(this);
+                if (canMakeStep === false || th.hasClass(instance.figureName) || th.hasClass(instance.oppFigureName))
+                    return;
 
-    this.inverseCanMakeStep = function() {
-        canMakeStep = !canMakeStep;
-    };
+                var i = th.data("ri");
+                var j = th.data("ci");
 
-    this.getImageUrl = function(figureName) {
-        var base = "../Content/Images/";
-        return figureName === "cross" ? base + "c2.png" : base + "n2.png";
-    };
+                instance.updateGameState(i, j, instance.figureName);
+                addFigureToCell(th, instance.figureName);
+                var cUserName = instance.getCurrentUserName();
+                var flag = instance.resolveUser(cUserName);
+                instance.makeStep(i, j);
+                if (flag) {
+                    setTempMessage($("#mg"), "You won!!!. Wanna play once more?", -1);
+                    // propose to play once more
+                    return;
+                }
+                $("#mg").text("Opponent's turn to make step");
+            });
+        }
 
-    this.makeStep = function(i, j) {
-        canMakeStep = !canMakeStep;
-        // may be fail and done callbacks are redundant?
-        gamesHub.server.makeStep(i, j, gameId).done(function() { // { rowIndex:i, colIndex:j, gameId: gameId}).done(function () {
-            console.log("figure sent");
-        }).fail(function() {
-            console.log("error while sending the figure");
-        });
-    };
+        this.getWinnerUserName = function() {
+            return winnerUserName;
+        }
 
-    this.getYourOnlineEnemyName = function() {
-        if (currentUserName === invitatorName)
+        this.getOpponentName = function() {
             return oppName;
-        return invitatorName;
-    }
-    
+        };
 
-    this.updateGameState = function(i, j, figureName) {
-        map[i][j] = figureName === "cross" ? 1 : 0;
-    };
-
-    this.resolveUser = function(userName) {
-        var fName = userName === currentUserName ? instance.figureName : instance.oppFigureName;
-        var targetDigit = fName === "cross" ? 1 : 0;
-        var won = checkHor(targetDigit) || checkVert(targetDigit) || checkDiag(targetDigit);
-        if (won)
-            winnerUserName = currentUserName;
-        return won;
-    }
- 
-    // works only for 3 - size field yet
-    function checkHor(targetDigit) {
-        var flag;
-        for (var i = 0; i < fieldSize; i++)
-        {
-            flag = true;
-            for (var j = 0; j < fieldSize; j++)
-                if (map[i][j] !== targetDigit) {
-                    flag = false;
-                    break;
-                }
-            if (flag === true)
-                return flag;
+        this.getCurrentUserName = function() {
+            return currentUserName;
         }
-        return flag;
-    }
 
-    function checkVert(targetDigit) {
-        var flag;
-        for (var i = 0; i < fieldSize; i++) {
-            flag = true;
-            for (var j = 0; j < fieldSize; j++)
-                if (map[j][i ] !== targetDigit) {
-                    flag = false;
-                    break;
-                }
-            if (flag === true)
-                return flag;
+        this.inverseCanMakeStep = function() {
+            canMakeStep = !canMakeStep;
+        };
+
+        this.getImageUrl = function(figureName) {
+            var base = "../Content/Images/";
+            return figureName === "cross" ? base + "c2.png" : base + "n2.png";
+        };
+
+        this.makeStep = function(i, j) {
+            canMakeStep = !canMakeStep;
+            // may be fail and done callbacks are redundant?
+            gamesHub.server.makeStep(i, j, gameId).done(function() {
+                console.log("figure sent");
+            }).fail(function() {
+                console.log("error while sending the figure");
+            });
+
+            var lastData = this.lastMakeStepData;
+            lastData.i = i;
+            lastData.j = j;
+        };
+
+        this.getYourOnlineEnemyName = function() {
+            if (currentUserName === invitatorName)
+                return oppName;
+            return invitatorName;
         }
-        return flag;
-    }
 
-    function checkDiag(targetDigit) {
-        return map[0][0] === targetDigit &&
-            map[1][1] === targetDigit &&
-            map[2][2] === targetDigit ||
-            map[2][0] === targetDigit &&
-            map[1][1] === targetDigit &&
-            map[0][2] === targetDigit;
-    }
 
-    function createMatrix() {
-        var newMatrix = [];
-        for (var i = 0; i < fieldSize; i++) {
-            newMatrix.push([]);
-            for (var j = 0; j < fieldSize; j++) {
-                newMatrix[i].push(-1);
+        this.updateGameState = function(i, j, figureName) {
+            map[i][j] = figureName === "cross" ? 1 : 0;
+        };
+
+        this.resolveUser = function(userName) {
+            var fName = userName === currentUserName ? instance.figureName : instance.oppFigureName;
+            var targetDigit = fName === "cross" ? 1 : 0;
+            var won = checkHor(targetDigit) || checkVert(targetDigit) || checkDiag(targetDigit);
+            if (won)
+                winnerUserName = userName;
+            return won;
+        }
+
+        // works only for 3 - size field yet
+        function checkHor(targetDigit) {
+            var flag;
+            for (var i = 0; i < fieldSize; i++) {
+                flag = true;
+                for (var j = 0; j < fieldSize; j++)
+                    if (map[i][j] !== targetDigit) {
+                        flag = false;
+                        break;
+                    }
+                if (flag === true)
+                    return flag;
             }
-        }
-        return newMatrix;
-    }
-    
-    // implementation details
-    function getFigureName(cuName, oppName) {
-        return cuName === oppName ? "cross" : "nought";
-    }
-    
-    function createPlayingField(fieldSize) {
-        fieldSize = fieldSize || 3;
-
-        var gameWrapper = $("<div>")
-            .attr("id", "gameWrapper")
-            .css("width", "100%")
-            .css("position","relative");
-
-        var table = $("<table>").attr("id", "field").addClass("table-bordered")
-            .css("margin-top", "10px")
-            .css("margin-bottom", "10px")
-            .css("margin-left", "auto")
-            .css("margin-right", "auto")
-            .css("font-size", "16px")
-            .addClass("text-info");
-
-        
-        var tbody = $("<tbody>");
-
-        for (var i = 0; i < fieldSize; i++) {
-            var row = $("<tr>");
-            for (var j = 0; j < fieldSize; j++)
-                row.append($("<td>").addClass("cell").width(100).height(100)
-                    .attr("data-ri", i)
-                    .attr("data-ci",j));
-            tbody.append(row);
+            return flag;
         }
 
-        table.append(tbody);
-        var existed = $(".game").find("table#field");
+        function checkVert(targetDigit) {
+            var flag;
+            for (var i = 0; i < fieldSize; i++) {
+                flag = true;
+                for (var j = 0; j < fieldSize; j++)
+                    if (map[j][i] !== targetDigit) {
+                        flag = false;
+                        break;
+                    }
+                if (flag === true)
+                    return flag;
+            }
+            return flag;
+        }
 
-        // todo: remake
-        // or just reuse
-        if (existed)
-            existed.remove();
+        function checkDiag(targetDigit) {
+            return map[0][0] === targetDigit &&
+                map[1][1] === targetDigit &&
+                map[2][2] === targetDigit ||
+                map[2][0] === targetDigit &&
+                map[1][1] === targetDigit &&
+                map[0][2] === targetDigit;
+        }
 
-        var span = $("<span>").attr("id", "mg")
-            .css("float", "left")
-            .css("font-size", "16px")
-            .css("max-width", "300px")
-            .css("position", "absolute")
-            .css("left", "5px")
-            .addClass("text-info");
+        function createMatrix() {
+            var newMatrix = [];
+            for (var i = 0; i < fieldSize; i++) {
+                newMatrix.push([]);
+                for (var j = 0; j < fieldSize; j++) {
+                    newMatrix[i].push(-1);
+                }
+            }
+            return newMatrix;
+        }
 
-        gameWrapper.append(span);
-        gameWrapper.append(table);
+        // implementation details
+        function getFigureName(cuName, oppName) {
+            return cuName === oppName ? "cross" : "nought";
+        }
 
-        return $(".game").append(gameWrapper);
-    }
+        function createPlayingField(fieldSize) {
+            fieldSize = fieldSize || 3;
+
+            var gameWrapper = $("<div>")
+                .attr("id", "gameWrapper")
+                .css("width", "100%")
+                .css("position", "relative");
+
+            var table = $("<table>").attr("id", "field").addClass("table-bordered")
+                .css("margin-top", "10px")
+                .css("margin-bottom", "10px")
+                .css("margin-left", "auto")
+                .css("margin-right", "auto")
+                .css("font-size", "16px")
+                .addClass("text-info");
+
+
+            var tbody = $("<tbody>");
+
+            for (var i = 0; i < fieldSize; i++) {
+                var row = $("<tr>");
+                for (var j = 0; j < fieldSize; j++)
+                    row.append($("<td>").addClass("cell").width(100).height(100)
+                        .attr("data-ri", i)
+                        .attr("data-ci", j));
+                tbody.append(row);
+            }
+
+            table.append(tbody);
+            var existed = $(".game").find("table#field");
+
+            // todo: remake
+            // or just reuse
+            if (existed)
+                existed.remove();
+
+            var span = $("<span>").attr("id", "mg")
+                .css("float", "left")
+                .css("font-size", "16px")
+                .css("max-width", "300px")
+                .css("position", "absolute")
+                .css("left", "5px")
+                .addClass("text-info");
+
+            gameWrapper.append(span);
+            gameWrapper.append(table);
+
+            return $(".game").append(gameWrapper);
+        }
 }
+
+
+
