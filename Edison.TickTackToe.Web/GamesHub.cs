@@ -22,7 +22,7 @@ namespace Edison.TickTackToe.Web
     {
         private async Task ActualizeConnectionId()
         {
-            var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
+            var context = Context.Request.GetHttpContext().GetOwinContext().Get<GameContext>();
             var userName = Context.User.Identity.Name;
             var user = context.Users.Single(u => u.UserName.Equals(userName));
             user.ConnectionId = Context.ConnectionId;
@@ -35,13 +35,11 @@ namespace Edison.TickTackToe.Web
             return await Task.FromResult(MvcApplication.OnlineUsers);
         }
 
-        // not tested
-        // todo: test it
         public async Task ChangeStatus(string userEmail, int newStatus)
         {
             try
             {
-               var owinContext = HttpContext.Current.GetOwinContext();
+               var owinContext = Context.Request.GetHttpContext().GetOwinContext();
                var manager = owinContext.GetUserManager<ApplicationUserManager>();
                var user = await manager.FindByEmailAsync(userEmail);
                 
@@ -156,7 +154,7 @@ namespace Edison.TickTackToe.Web
         private async Task<Member> AddStepToGame(int rowIndex, int columnIndex, int gameId, string userName)
         {
             Member opponent;
-            var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
+            var context = Context.Request.GetHttpContext().GetOwinContext().Get<GameContext>();
             var game = context.Games.Find(gameId);
 
             // this method is not necessary

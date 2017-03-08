@@ -319,6 +319,20 @@ function onUserMadeStep(data) {
 function onHandleException(data) {
     console.log("Exception in " + data.MethodName + ":\n");
     console.log(data.Exception);
+
+    // костыль 
+    // HttpContext.Current is null sometimes
+    if (data.MethodName === "MakeStep") {
+        var gm = gameManager;
+
+        $.connection.gamesHub.server.makeStep(gm.lastMakeStepData.i, gm.lastMakeStepData.j, gm.getGameId()).done(function() {
+            console.log("figure sending repeated");
+        }).fail(function() {
+            console.log("error while resending the figure.");
+        });
+    }
+
+   // make the same for AcceptInvitation method
 }
 
 
