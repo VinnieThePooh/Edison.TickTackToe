@@ -295,7 +295,7 @@ function onPlayersStatusChanged(data) {
 function onBeginNewGame(data) {
     var invName = data.InvitatorName;
     // currentUser
-    var oppName = $("#tableUsers").data("name");
+    var oppName = data.OpponentName;
 
     // change status here
     // direct callback call to change status
@@ -303,7 +303,7 @@ function onBeginNewGame(data) {
     onPlayersStatusChanged(par);
     setDisableStateUsersTable(true);
 
-    gameManager = new GameManager($.connection.gamesHub, invName, oppName, oppName, data.GameId,3,true);
+    gameManager = new GameManager($.connection.gamesHub, invName, oppName, oppName, data.GameId,3);
     gameManager.startGame();
 }
 
@@ -452,7 +452,7 @@ function onStatusChanged(data) {
 // GameManager here
 //
 //todo: refactor
-function GameManager(hub, invName, oppName, curUserName, gid, fsize, cmStep) {
+function GameManager(hub, invName, oppName, curUserName, gid, fsize) {
     var instance = this;
     var gamesHub = hub;
     var invitatorName = invName;
@@ -462,7 +462,7 @@ function GameManager(hub, invName, oppName, curUserName, gid, fsize, cmStep) {
     this.figureName = getFigureName(curUserName, oppName);
     this.oppFigureName = this.figureName === "nought" ? "cross" : "nought";
     var winnerUserName = null;
-    var canMakeStep = cmStep || false;
+    var canMakeStep = curUserName === oppName;
     var map = createMatrix();
 
     this.lastMakeStepData = {};

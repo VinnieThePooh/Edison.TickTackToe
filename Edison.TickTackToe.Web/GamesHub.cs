@@ -113,17 +113,14 @@ namespace Edison.TickTackToe.Web
 
                 // on this client beginNewGame will be called inside this accepting callback
                 // his own name will be taken from client
-                Clients.Client(invId)
-                    .userAcceptedInvitation(new {OpponentName = Context.User.Identity.Name, GameId = id});
-                Clients.Caller.beginNewGame(new {InvitatorName = invitatorName, GameId = id});
-                Clients.AllExcept(oppId, invId)
-                    .playersStatusChanged(
-                        new
-                        {
-                            InvitatorName = invitatorName,
-                            OpponentName = opponent.UserName,
-                            StatusCode = (int) StatusCode.Playing
-                        });
+                Clients.Client(invId).userAcceptedInvitation(new {OpponentName = Context.User.Identity.Name, GameId = id});
+                Clients.Caller.beginNewGame(new {InvitatorName = invitatorName, OpponentName = Context.User.Identity.Name, GameId = id});
+                Clients.AllExcept(oppId, invId).playersStatusChanged(new
+                                                                        {
+                                                                            InvitatorName = invitatorName,
+                                                                            OpponentName = opponent.UserName,
+                                                                            StatusCode = (int) StatusCode.Playing
+                                                                        });
             }
             catch (Exception e)
             {
@@ -219,7 +216,7 @@ namespace Edison.TickTackToe.Web
                             var newInv = DefineNewInvitator(game, game.PlayerInitiator, opp);
                             var newId = await CreateNewGame(newInv, newInv == opp ? game.PlayerInitiator : opp);
                             Clients.Clients(new[] {opp.ConnectionId, game.PlayerInitiator.ConnectionId})
-                                .beginNewGame(new {InvitatorName = newInv.UserName, GameId = newId});
+                                .beginNewGame(new {InvitatorName = newInv.UserName, OpponentName = newInv == opp ? game.PlayerInitiator.UserName: opp.UserName , GameId = newId});
                         }
                         else // no-yes case
                         {
