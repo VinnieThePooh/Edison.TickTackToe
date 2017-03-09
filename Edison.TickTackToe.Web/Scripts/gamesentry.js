@@ -140,7 +140,7 @@ function setDisableStateUsersTable(flag, exceptUserName) {
 }
 
 
-function  btnNoClickHandler() {
+function  btnNoClickHandler(event) {
 
     var field = $("#field");
     field.length && field.remove();
@@ -154,9 +154,7 @@ function  btnNoClickHandler() {
         console.log("Failed while sending decision to proceed");
     });
 
-    var btnN = $("#btnNo");
-    btnN.length && btnN.remove();
-
+    event.target.remove();
     var btnY = $("#btnYes");
     btnY.length && btnY.remove();
     $("#mg").text("");
@@ -166,20 +164,24 @@ function  btnNoClickHandler() {
 function createContinueButtons() {
     var btnY = $("<button>").attr("id", "btnYes").addClass("btn btn-default").text("Yes")
         .css("margin-right", "5px")
-        .on("click", function() {
+        .on("click", function(event) {
+
             var gameId = gameManager.getGameId();
-            debugger;
             onPlayersStatusChanged({ StatusCode: 0, OpponentName: gameManager.getCurrentUserName(), InvitatorName: gameManager.getYourOnlineEnemyName() });
+            
+            event.target.remove();
+            var btnN = $("#btnNo");
+            btnN.length && btnN.remove();
             $("#mg").text("");
+
             // 1 - just flag that value is present, so  we wanna continue
-            gameManager.gamesHub.server.beginNewGame(gameId, 1).done(function() {
+            $.connection.gamesHub.server.beginNewGame(gameId, 1).done(function() {
                 console.log("new status was sent");
             }).fail(function() {
                 console.log("Failed while was sending status");
             });
         });
-
-
+    
     var btnN = $("<button>").attr("id", "btnNo")
                 .addClass("btn btn-default")
                 .css("margin-right", "5px")
@@ -192,10 +194,13 @@ function createContinueButtons() {
     var timer = setInterval(function() {
         counter++;
         if (counter === 10) {
-            btnN.length && btnN.remove();
-            btnY.length && btnY.remove();
+
+            var noButton = $("#btnNo");
+            noButton.length && btnNoClickHandler() && noButton.remove();
+
+            var yButton = $("#btnYes");
+            yButton.length && yButton.remove();
             clearInterval(timer);
-            btnN.length && btnNoClickHandler();
         }
     },1000);
 }
@@ -220,7 +225,7 @@ function onUserRejectedInvitation(data) {
 
 
 function onPlayerRejectedToProceed() {
-    setTempMessage($("#mg"), gameManager.getYourOnlineEnemyName() + " rejected to proceed", 2);
+    setTempMessage($("#mcontact"), gameManager.getYourOnlineEnemyName() + " rejected to proceed", 3);
     var field = $("#field");
     field.length && field.remove();
     setDisableStateUsersTable(false);
@@ -377,14 +382,12 @@ function onHandleInvitation(data) {
 
 
 function onUserMadeStep(data) {
-   
     var ci = data.ColumnIndex;
     var ri = data.RowIndex;
-
     var cell = $("#field").find(".cell[data-ri='" + ri + "'][data-ci='" + ci + "']");
     addFigureToCell(cell, gameManager.oppFigureName);
 
-    gameManager.updateGameState(ci, ri, gameManager.oppFigureName);
+    gameManager.updateGameState(ri, ci, gameManager.oppFigureName);
     var oppName = gameManager.getYourOnlineEnemyName();
     var userWon = gameManager.resolveUser(oppName);
     if (userWon) {
@@ -396,8 +399,7 @@ function onUserMadeStep(data) {
     var cu = gameManager.getCurrentUserName();
     if (!gameManager.resolveUser(cu) && !gameManager.getUnsetItemsCount()) {
         $("#mg").text("Nobody won. Wanna play once more?");
-        // draw
-        // propose to play once more
+        createContinueButtons();
         return;
     }
     setTempMessage($("#mg") , "Your turn to make a step",-1);
@@ -570,7 +572,7 @@ function GameManager(hub, invName, oppName, curUserName, gid, fsize, cmStep) {
     }
 
 
-    this.updateGameState = function(i, j, figureName) {
+    this.updateGameState = function(i, j, figureName) { 
         map[i][j] = figureName === "cross" ? 1 : 0;
         console.log("Cell[" + i + "," + j + "] was sent to: " + map[i][j]);
     };
