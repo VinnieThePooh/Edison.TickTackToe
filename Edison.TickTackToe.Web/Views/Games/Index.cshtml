@@ -14,7 +14,7 @@
 </div>
 <div class="users">
     <h4 class="text-center">Users</h4>
-    <table class="table table-hover" id="tableUsers" data-name="@HttpContext.Current.User.Identity.Name">
+    <table class="table table-hover" id="tableUsers" data-email="@ViewBag.Email" data-name="@HttpContext.Current.User.Identity.Name">
         <thead>
         <tr>
             <th>

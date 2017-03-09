@@ -86,6 +86,7 @@ function defineClientCallbacks(gamesHub) {
     client.beginNewGame = onBeginNewGame;
     client.playersStatusChanged = onPlayersStatusChanged;
     client.userMadeStep = onUserMadeStep;
+    client.playerRejectedToProceed = onPlayerRejectedToProceed;
 }
 
 
@@ -108,25 +109,6 @@ function setTempMessage(paragraph, message, interval, newMessage) {
 }
 
 
-function onUserAcceptedInvitation(data) {
-    setTempMessage($("#mcontact"), data.OpponentName + " accepted your invitation");
-    
-    // changes status here
-    var invName = $("#tableUsers").data("name");
-    var oppName = data.OpponentName;
-
-    // direct callback call to change status
-    var par = { InvitatorName: invName, OpponentName: oppName, GameId: data.GameId, StatusCode: 1 };
-    onPlayersStatusChanged(par);
-    setDisableStateUsersTable(true);
-
-    // create manager here to track new game
-    var gameId = data.GameId;
-    gameManager = new GameManager($.connection.gamesHub, invName, oppName, invName, gameId, 3);
-    gameManager.startGame();
-}
-
-
 function findRowByUserName(name) {
     var rows = $("#tableUsers tr").filter(function () {
         return $(this).find("td:eq(0)").text() === name;
@@ -137,12 +119,86 @@ function findRowByUserName(name) {
 }
 
 
-function setDisableStateUsersTable(flag) {
-    $("#tableUsers").find("button").each(function() {
-        $(this).attr("disabled",flag);
-    });
+function setDisableStateUsersTable(flag, exceptUserName) {
+
+    if (flag === true)
+    $("#tableUsers").find("button").each(function (){ $(this).attr("disabled", flag); });
+    else {
+
+        var trs;
+        if (exceptUserName)
+            trs = $("#tableUsers tr").filter(function() {
+                return $(this).find("td:eq(1)").text() === EnumMapper.fromInt[0] &&
+                       $(this).find("td:eq(0)").text() !== exceptUserName;
+            });
+        else trs = $("#tableUsers tr").filter(function() {
+            return $(this).find("td:eq(1)").text() === EnumMapper.fromInt[0];
+        });
+        debugger;
+        trs.find("button").attr("disabled", flag);
+    }
 }
 
+
+function  btnNoClickHandler() {
+
+    var field = $("#field");
+    field.length && field.remove();
+    setDisableStateUsersTable(false, gameManager.getYourOnlineEnemyName());
+    var gameId = gameManager.getGameId();
+
+    // null - no value presents
+    $.connection.gamesHub.server.beginNewGame(gameId, null).done(function() {
+        console.log("decision to proceed sent");
+    }).fail(function () {
+        console.log("Failed while sending decision to proceed");
+    });
+
+    var btnN = $("#btnNo");
+    btnN.length && btnN.remove();
+
+    var btnY = $("#btnYes");
+    btnY.length && btnY.remove();
+    $("#mg").text("");
+    return true;
+}
+
+function createContinueButtons() {
+    var btnY = $("<button>").attr("id", "btnYes").addClass("btn btn-default").text("Yes")
+        .css("margin-right", "5px")
+        .on("click", function() {
+            var gameId = gameManager.getGameId();
+            debugger;
+            onPlayersStatusChanged({ StatusCode: 0, OpponentName: gameManager.getCurrentUserName(), InvitatorName: gameManager.getYourOnlineEnemyName() });
+            $("#mg").text("");
+            // 1 - just flag that value is present, so  we wanna continue
+            gameManager.gamesHub.server.beginNewGame(gameId, 1).done(function() {
+                console.log("new status was sent");
+            }).fail(function() {
+                console.log("Failed while was sending status");
+            });
+        });
+
+
+    var btnN = $("<button>").attr("id", "btnNo")
+                .addClass("btn btn-default")
+                .css("margin-right", "5px")
+                .text("No")
+                .on("click", btnNoClickHandler);
+
+    $("#mg").append(btnN).append(btnY);
+
+    var counter = 0;
+    var timer = setInterval(function() {
+        counter++;
+        if (counter === 10) {
+            btnN.length && btnN.remove();
+            btnY.length && btnY.remove();
+            clearInterval(timer);
+            btnN.length && btnNoClickHandler();
+        }
+    },1000);
+}
 
 function addFigureToCell(cell, figureName) {
     cell.addClass(figureName);
@@ -161,6 +217,33 @@ function addFigureToCell(cell, figureName) {
 function onUserRejectedInvitation(data) {
     setTempMessage($("#mcontact"), data.UserName + " rejected your invitation");
 }
+
+
+function onPlayerRejectedToProceed() {
+    setTempMessage($("#mg"), gameManager.getYourOnlineEnemyName() + " rejected to proceed", 2);
+    var field = $("#field");
+    field.length && field.remove();
+    setDisableStateUsersTable(false);
+}
+
+function onUserAcceptedInvitation(data) {
+    setTempMessage($("#mcontact"), data.OpponentName + " accepted your invitation");
+
+    // changes status here
+    var invName = $("#tableUsers").data("name");
+    var oppName = data.OpponentName;
+
+    // direct callback call to change status
+    var par = { InvitatorName: invName, OpponentName: oppName, GameId: data.GameId, StatusCode: 1 };
+    onPlayersStatusChanged(par);
+    setDisableStateUsersTable(true);
+
+    // create manager here to track new game
+    var gameId = data.GameId;
+    gameManager = new GameManager($.connection.gamesHub, invName, oppName, invName, gameId, 3);
+    gameManager.startGame();
+}
+
 
 function onUserJoinedSite(data) {
     var email = data.Email;
@@ -284,6 +367,8 @@ function onHandleInvitation(data) {
             if (temp) {
                 temp.remove();
                 $("#mcontact").text("");
+                btnReject.remove();
+                btnAccept.remove();
                 clearInterval(timer);
             }
         }
@@ -304,8 +389,7 @@ function onUserMadeStep(data) {
     var userWon = gameManager.resolveUser(oppName);
     if (userWon) {
         setTempMessage($("#mg"), "You lost. Wanna play once more?", -1);
-        // u lost 
-        // propose to play once more
+        createContinueButtons();
         return;
     }
 
@@ -328,9 +412,9 @@ function onHandleException(data) {
 
 
 // not tested
-    function onStatusChanged(data) {
-
-        var rows = $("#tableUsers").filter(function() {
+function onStatusChanged(data) {
+    console.log("User[" + data.UserEmail + "] changed status to " + EnumMapper.fromInt[data.StatusCode]);
+        var rows = $("#tableUsers tr").filter(function() {
             return $(this).data("email") === data.UserEmail;
         });
 
@@ -339,7 +423,6 @@ function onHandleException(data) {
             row.find("td:eq(1)").text(EnumMapper.fromInt[data.StatusCode]);
 
             var button = row.find("button");
-
             if (data.StatusCode === 1) {
                 button.attr("disabled", true);
             } else {
@@ -367,254 +450,245 @@ function onHandleException(data) {
 // GameManager here
 //
 //todo: refactor
-    function GameManager(hub, invName, oppName, curUserName, gid, fsize, cmStep) {
-        var instance = this;
-        var gamesHub = hub;
-        var invitatorName = invName;
-        var currentUserName = curUserName;
-        var gameId = gid;
-        var fieldSize = fsize || 3;
-        this.figureName = getFigureName(curUserName, oppName);
-        this.oppFigureName = this.figureName === "nought" ? "cross" : "nought";
-        var winnerUserName = null;
-        var canMakeStep = cmStep || false;
-        var map = createMatrix();
+function GameManager(hub, invName, oppName, curUserName, gid, fsize, cmStep) {
+    var instance = this;
+    var gamesHub = hub;
+    var invitatorName = invName;
+    var currentUserName = curUserName;
+    var gameId = gid;
+    var fieldSize = fsize || 3;
+    this.figureName = getFigureName(curUserName, oppName);
+    this.oppFigureName = this.figureName === "nought" ? "cross" : "nought";
+    var winnerUserName = null;
+    var canMakeStep = cmStep || false;
+    var map = createMatrix();
 
-        this.lastMakeStepData = {};
-        this.getUnsetItemsCount = function() {
-            var counter = 0;
-            for(var i = 0; i < fieldSize; i++)
-                for (var j = 0; j < fieldSize; j++)
-                    if (map[i][j] === -1)
-                        counter++;
-            return counter;
-        };
+    this.lastMakeStepData = {};
+    this.getUnsetItemsCount = function() {
+        var counter = 0;
+        for (var i = 0; i < fieldSize; i++)
+            for (var j = 0; j < fieldSize; j++)
+                if (map[i][j] === -1)
+                    counter++;
+        return counter;
+    };
 
-        this.getGameId = function() {
-            return gameId;
-        };
+    this.getGameId = function() {
+        return gameId;
+    };
 
-        this.startGame = function() {
-            createPlayingField();
-            if (currentUserName === invitatorName)
-                setTempMessage($("#mg"), "Opponent makes a step first", -1);
-            else
-                setTempMessage($("#mg"), "You make first step", -1);
+    this.startGame = function() {
+        createPlayingField();
+        if (currentUserName === invitatorName)
+            setTempMessage($("#mg"), "Opponent makes a step first", -1);
+        else
+            setTempMessage($("#mg"), "You make first step", -1);
 
-            var cells = $(".cell");
-            cells.off();
-            cells.mouseenter(function() {
-                var th = $(this);
-                console.log("was hovered");
-                if (canMakeStep == false || th.hasClass(instance.figureName) || th.hasClass(instance.oppFigureName))
-                    th.css("cursor", "not-allowed");
-                else th.css("cursor", "default");
-            });
+        var cells = $(".cell");
+        cells.off();
+        cells.mouseenter(function() {
+            var th = $(this);
+            console.log("was hovered");
+            if (canMakeStep == false || th.hasClass(instance.figureName) || th.hasClass(instance.oppFigureName))
+                th.css("cursor", "not-allowed");
+            else th.css("cursor", "default");
+        });
 
-            cells.on("click", function() {
-                console.log("figure was clicked");
-                var th = $(this);
-                if (canMakeStep === false || th.hasClass(instance.figureName) || th.hasClass(instance.oppFigureName))
-                    return;
+        cells.on("click", function() {
+            console.log("figure was clicked");
+            var th = $(this);
+            if (canMakeStep === false || th.hasClass(instance.figureName) || th.hasClass(instance.oppFigureName))
+                return;
 
-                var i = th.data("ri");
-                var j = th.data("ci");
+            var i = th.data("ri");
+            var j = th.data("ci");
 
-                instance.updateGameState(i, j, instance.figureName);
-                addFigureToCell(th, instance.figureName);
-                var cUserName = instance.getCurrentUserName();
-                var flag = instance.resolveUser(cUserName);
-                instance.makeStep(i, j);
-                if (flag) {
-                    setTempMessage($("#mg"), "You won!!!. Wanna play once more?", -1);
-                    // propose to play once more
-                    return;
-                }
+            instance.updateGameState(i, j, instance.figureName);
+            addFigureToCell(th, instance.figureName);
+            var cUserName = instance.getCurrentUserName();
+            var flag = instance.resolveUser(cUserName);
+            instance.makeStep(i, j);
+            if (flag) {
+                setTempMessage($("#mg"), "You won!!!. Wanna play once more?", -1);
+                createContinueButtons();
+                return;
+            }
 
-                if (!instance.getUnsetItemsCount()) {
-                    $("#mg").text("Nobody won. Wanna play once more?");
-                    return;
-                }
+            if (!instance.getUnsetItemsCount()) {
+                $("#mg").text("Nobody won. Wanna play once more?");
+                createContinueButtons();
+                return;
+            }
 
-                $("#mg").text("Opponent's turn to make step");
-            });
-        }
+            $("#mg").text("Opponent's turn to make step");
+        });
+    }
 
-        this.getWinnerUserName = function() {
-            return winnerUserName;
-        }
+    this.getWinnerUserName = function() {
+        return winnerUserName;
+    }
 
-        this.getOpponentName = function() {
+    this.getOpponentName = function() {
+        return oppName;
+    };
+
+    this.getCurrentUserName = function() {
+        return currentUserName;
+    }
+
+    this.inverseCanMakeStep = function() {
+        canMakeStep = !canMakeStep;
+    };
+
+    this.getImageUrl = function(figureName) {
+        var base = "../Content/Images/";
+        return figureName === "cross" ? base + "c2.png" : base + "n2.png";
+    };
+
+    this.getMap = function() {
+        return map;
+    }
+
+    this.makeStep = function(i, j) {
+        canMakeStep = !canMakeStep;
+        // may be fail and done callbacks are redundant?
+        gamesHub.server.makeStep(i, j, gameId).done(function() {
+            console.log("figure sent");
+        }).fail(function() {
+            console.log("error while sending the figure");
+        });
+
+        var lastData = this.lastMakeStepData;
+        lastData.i = i;
+        lastData.j = j;
+    };
+
+    this.getYourOnlineEnemyName = function() {
+        if (currentUserName === invitatorName)
             return oppName;
-        };
-
-        this.getCurrentUserName = function() {
-            return currentUserName;
-        }
-
-        this.inverseCanMakeStep = function() {
-            canMakeStep = !canMakeStep;
-        };
-
-        this.getImageUrl = function(figureName) {
-            var base = "../Content/Images/";
-            return figureName === "cross" ? base + "c2.png" : base + "n2.png";
-        };
-
-        this.getMap = function() {
-            return map;
-        }
-
-        this.makeStep = function(i, j) {
-            canMakeStep = !canMakeStep;
-            // may be fail and done callbacks are redundant?
-            gamesHub.server.makeStep(i, j, gameId).done(function() {
-                console.log("figure sent");
-            }).fail(function() {
-                console.log("error while sending the figure");
-            });
-
-            var lastData = this.lastMakeStepData;
-            lastData.i = i;
-            lastData.j = j;
-        };
-
-        this.getYourOnlineEnemyName = function() {
-            if (currentUserName === invitatorName)
-                return oppName;
-            return invitatorName;
-        }
+        return invitatorName;
+    }
 
 
-        this.updateGameState = function(i, j, figureName) {
-            map[i][j] = figureName === "cross" ? 1 : 0;
-            console.log("Cell[" + i + "," + j + "] was sent to: " + map[i][j]);
-        };
+    this.updateGameState = function(i, j, figureName) {
+        map[i][j] = figureName === "cross" ? 1 : 0;
+        console.log("Cell[" + i + "," + j + "] was sent to: " + map[i][j]);
+    };
 
-        this.resolveUser = function(userName) {
-            var fName = userName === currentUserName ? instance.figureName : instance.oppFigureName;
-            var targetDigit = fName === "cross" ? 1 : 0;
-            var won = checkHor(targetDigit) || checkVert(targetDigit) || checkDiag(targetDigit);
-            if (won)
-                winnerUserName = userName;
-            return won;
-        }
+    this.resolveUser = function(userName) {
+        var fName = userName === currentUserName ? instance.figureName : instance.oppFigureName;
+        var targetDigit = fName === "cross" ? 1 : 0;
+        var won = checkHor(targetDigit) || checkVert(targetDigit) || checkDiag(targetDigit);
+        if (won)
+            winnerUserName = userName;
+        return won;
+    }
 
-        // works only for 3 - size field yet
-        function checkHor(targetDigit) {
-            var flag;
-            for (var i = 0; i < fieldSize; i++) {
-                flag = true;
-                for (var j = 0; j < fieldSize; j++)
-                    if (map[i][j] !== targetDigit) {
-                        flag = false;
-                        break;
-                    }
-                if (flag === true)
-                    return flag;
-            }
-            return flag;
-        }
-
-        function createContinueButtons() {
-            var btnY = $("<button>").attr().addClass("btn btn-default").text("Yes").on("click", function () {
-                    
-            });
-
-            var btnN = $("<button>").addClass("btn btn-default").text("No").on("click", function () {
-                
-            });
-        }
-
-        function checkVert(targetDigit) {
-            var flag;
-            for (var i = 0; i < fieldSize; i++) {
-                flag = true;
-                for (var j = 0; j < fieldSize; j++)
-                    if (map[j][i] !== targetDigit) {
-                        flag = false;
-                        break;
-                    }
-                if (flag === true)
-                    return flag;
-            }
-            return flag;
-        }
-
-        function checkDiag(targetDigit) {
-            return map[0][0] === targetDigit &&
-                map[1][1] === targetDigit &&
-                map[2][2] === targetDigit ||
-                map[2][0] === targetDigit &&
-                map[1][1] === targetDigit &&
-                map[0][2] === targetDigit;
-        }
-
-        function createMatrix() {
-            var newMatrix = [];
-            for (var i = 0; i < fieldSize; i++) {
-                newMatrix.push([]);
-                for (var j = 0; j < fieldSize; j++) {
-                    newMatrix[i].push(-1);
+    // works only for 3 - size field yet
+    function checkHor(targetDigit) {
+        var flag;
+        for (var i = 0; i < fieldSize; i++) {
+            flag = true;
+            for (var j = 0; j < fieldSize; j++)
+                if (map[i][j] !== targetDigit) {
+                    flag = false;
+                    break;
                 }
+            if (flag === true)
+                return flag;
+        }
+        return flag;
+    }
+
+
+    function checkVert(targetDigit) {
+        var flag;
+        for (var i = 0; i < fieldSize; i++) {
+            flag = true;
+            for (var j = 0; j < fieldSize; j++)
+                if (map[j][i] !== targetDigit) {
+                    flag = false;
+                    break;
+                }
+            if (flag === true)
+                return flag;
+        }
+        return flag;
+    }
+
+    function checkDiag(targetDigit) {
+        return map[0][0] === targetDigit &&
+            map[1][1] === targetDigit &&
+            map[2][2] === targetDigit ||
+            map[2][0] === targetDigit &&
+            map[1][1] === targetDigit &&
+            map[0][2] === targetDigit;
+    }
+
+    function createMatrix() {
+        var newMatrix = [];
+        for (var i = 0; i < fieldSize; i++) {
+            newMatrix.push([]);
+            for (var j = 0; j < fieldSize; j++) {
+                newMatrix[i].push(-1);
             }
-            return newMatrix;
+        }
+        return newMatrix;
+    }
+
+    // implementation details
+    function getFigureName(cuName, oppName) {
+        return cuName === oppName ? "cross" : "nought";
+    }
+
+    function createPlayingField(fieldSize) {
+        fieldSize = fieldSize || 3;
+
+
+        //todo:  remake with reusing
+        var wrapper = $("#gameWrapper");
+        wrapper.length && wrapper.remove();
+
+        var gameWrapper = $("<div>")
+            .attr("id", "gameWrapper")
+            .css("width", "100%")
+            .css("position", "relative");
+
+        
+       var table = $("<table>").attr("id", "field").addClass("table-bordered")
+            .css("margin-top", "10px")
+            .css("margin-bottom", "10px")
+            .css("margin-left", "auto")
+            .css("margin-right", "auto")
+            .css("font-size", "16px")
+            .addClass("text-info");
+        
+        var tbody = $("<tbody>");
+
+        for (var i = 0; i < fieldSize; i++) {
+            var row = $("<tr>");
+            for (var j = 0; j < fieldSize; j++)
+                row.append($("<td>").addClass("cell").width(100).height(100)
+                    .attr("data-ri", i)
+                    .attr("data-ci", j));
+            tbody.append(row);
         }
 
-        // implementation details
-        function getFigureName(cuName, oppName) {
-            return cuName === oppName ? "cross" : "nought";
-        }
+        table.append(tbody);
+        
+        var span = $("<span>").attr("id", "mg")
+            .css("float", "left")
+            .css("font-size", "16px")
+            .css("max-width", "300px")
+            .css("position", "absolute")
+            .css("left", "5px")
+            .addClass("text-info");
 
-        function createPlayingField(fieldSize) {
-            fieldSize = fieldSize || 3;
+        gameWrapper.append(span);
+        gameWrapper.append(table);
 
-            var gameWrapper = $("<div>")
-                .attr("id", "gameWrapper")
-                .css("width", "100%")
-                .css("position", "relative");
-
-            var table = $("<table>").attr("id", "field").addClass("table-bordered")
-                .css("margin-top", "10px")
-                .css("margin-bottom", "10px")
-                .css("margin-left", "auto")
-                .css("margin-right", "auto")
-                .css("font-size", "16px")
-                .addClass("text-info");
-
-
-            var tbody = $("<tbody>");
-
-            for (var i = 0; i < fieldSize; i++) {
-                var row = $("<tr>");
-                for (var j = 0; j < fieldSize; j++)
-                    row.append($("<td>").addClass("cell").width(100).height(100)
-                        .attr("data-ri", i)
-                        .attr("data-ci", j));
-                tbody.append(row);
-            }
-
-            table.append(tbody);
-            var existed = $(".game").find("table#field");
-
-            // todo: remake
-            // or just reuse
-            if (existed)
-                existed.remove();
-
-            var span = $("<span>").attr("id", "mg")
-                .css("float", "left")
-                .css("font-size", "16px")
-                .css("max-width", "300px")
-                .css("position", "absolute")
-                .css("left", "5px")
-                .addClass("text-info");
-
-            gameWrapper.append(span);
-            gameWrapper.append(table);
-
-            return $(".game").append(gameWrapper);
-        }
+        return $(".game").append(gameWrapper);
+    }
 }
 
 

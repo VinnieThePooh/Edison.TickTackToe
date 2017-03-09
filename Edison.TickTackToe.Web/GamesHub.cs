@@ -13,6 +13,7 @@ using Edison.TickTackToe.Web.Models;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hubs;
+using WebGrease.Css.Extensions;
 
 namespace Edison.TickTackToe.Web
 {
@@ -39,13 +40,11 @@ namespace Edison.TickTackToe.Web
         {
             try
             {
-               var owinContext = Context.Request.GetHttpContext().GetOwinContext();
-               var manager = owinContext.GetUserManager<ApplicationUserManager>();
-               var user = await manager.FindByEmailAsync(userEmail);
+               var gameContext = Context.Request.GetHttpContext().GetOwinContext().Get<GameContext>();
+                var user = await gameContext.Users.SingleAsync(u => u.Email.Equals(userEmail));
                 
                var enumValue = (StatusCode)newStatus;
                var enumName = Enum.GetName(typeof (StatusCode), enumValue);
-               var gameContext = owinContext.Get<GameContext>();
                var targetStatus = gameContext.Set<MemberStatus>().Single(s => s.Name.Equals(enumName));
 
                var fromStaticList = MvcApplication.OnlineUsers.Single(u => u.Email.Equals(userEmail));
@@ -55,7 +54,7 @@ namespace Edison.TickTackToe.Web
                Clients.All.statusChanged(new { UserEmail = userEmail, StatusCode = newStatus });
 
                user.IdGameStatus = targetStatus.StatusId;
-               await manager.UpdateAsync(user);
+               await gameContext.SaveChangesAsync();
             }
             catch (Exception e)
             {
@@ -93,6 +92,21 @@ namespace Edison.TickTackToe.Web
                 var invId = invitator.ConnectionId;
 
                var id = await CreateNewGame(invitator, opponent);
+               
+
+                // change status in db
+                // change status in static list
+
+
+                var context = Context.Request.GetHttpContext().GetOwinContext().Get<GameContext>();
+
+                var playingStatus = await context.MemberStatuses.SingleAsync(ms => ms.Name.Equals(StatusNames.Playing));
+                invitator.IdGameStatus = playingStatus.StatusId;
+                opponent.IdGameStatus = playingStatus.StatusId;
+                await context.SaveChangesAsync();
+
+                MvcApplication.OnlineUsers.Where(u => u.Name.Equals(opponent.UserName) || u.Name.Equals(invitator.UserName)).ForEach(u => u.Status = playingStatus.Name);
+
 
                 // on this client beginNewGame will be called inside this accepting callback
                 // his own name will be taken from client
@@ -158,52 +172,74 @@ namespace Edison.TickTackToe.Web
            var userName = Context.User.Identity.Name;
            var game = await gameContext.Games.FindAsync(gameId);
 
+
+            if (!toCont.HasValue)
+            {
+                var fromList = MvcApplication.OnlineUsers.Single(u => u.Name.Equals(userName));
+                fromList.Status = (await GetStatusByName(StatusNames.Idle, Context)).Name;
+            }
+
+
             if (game.OpponentUserName.Equals(userName))
             {
                 game.OppWannaProceed = toCont.HasValue;
 
                 if (!toCont.HasValue)
+                {
+                    var user = await GetUserByName(userName, Context);
+                    await ChangeStatus(user.Email, (int)StatusCode.Idle);
                     if (game.InvWannaProceed.HasValue)
                     {
                         if (game.InvWannaProceed.Value)
+                        {
+                            await ChangeStatus(game.PlayerInitiator.Email, (int) StatusCode.Idle);
                             Clients.Client(game.PlayerInitiator.ConnectionId).playerRejectedToProceed();
+                        }
                     }
-                else if (game.InvWannaProceed.HasValue)
+               }
+            else if (game.InvWannaProceed.HasValue)
+            {
+                if (game.InvWannaProceed.Value)
                 {
-                    if (game.InvWannaProceed.Value)
-                    {
-                        var opp = await GetUserByName(game.OpponentUserName, Context);
-                        var newInv = DefineNewInvitator(game, game.PlayerInitiator, opp);
-                        var newId = await CreateNewGame(newInv, newInv == opp ? game.PlayerInitiator: opp);
-                        Clients.Clients(new[] {opp.ConnectionId, game.PlayerInitiator.ConnectionId}).beginNewGame(new {InvitatorName = newInv.UserName, GameId = newId});
-                    }
+                    var opp = await GetUserByName(game.OpponentUserName, Context);
+                    var newInv = DefineNewInvitator(game, game.PlayerInitiator, opp);
+                    var newId = await CreateNewGame(newInv, newInv == opp ? game.PlayerInitiator : opp);
+                    Clients.Clients(new[] {opp.ConnectionId, game.PlayerInitiator.ConnectionId})
+                        .beginNewGame(new {InvitatorName = newInv.UserName, GameId = newId});
                 }
             }
+        }
 
             if (game.PlayerInitiator.UserName.Equals(userName))
             {
                 game.InvWannaProceed = toCont.HasValue;
 
                 if (!toCont.HasValue)
+                {
+                    //  context doesn't allow for  wait
+                    await ChangeStatus(game.PlayerInitiator.Email, (int) StatusCode.Idle);
                     if (game.OppWannaProceed.HasValue)
                     {
-                        if (game.InvWannaProceed.Value)
+                        if (game.OppWannaProceed.Value)
                         {
                             var opp = await GetUserByName(game.OpponentUserName, Context);
+                            await ChangeStatus(opp.Email, (int)StatusCode.Idle);
                             Clients.Client(opp.ConnectionId).playerRejectedToProceed();
                         }
                     }
-                else if (game.OppWannaProceed.HasValue)
+                }
+            else if (game.OppWannaProceed.HasValue)
+            {
+                if (game.OppWannaProceed.Value)
                 {
-                    if (game.OppWannaProceed.Value)
-                    {
-                       var opp = await GetUserByName(game.OpponentUserName, Context);
-                       var newInv = DefineNewInvitator(game, game.PlayerInitiator, opp);
-                       var newId = await CreateNewGame(newInv, newInv == opp ? game.PlayerInitiator : opp);
-                       Clients.Clients(new[] { opp.ConnectionId, game.PlayerInitiator.ConnectionId }).beginNewGame(new { InvitatorName = newInv.UserName, GameId = newId });
-                    }
+                    var opp = await GetUserByName(game.OpponentUserName, Context);
+                    var newInv = DefineNewInvitator(game, game.PlayerInitiator, opp);
+                    var newId = await CreateNewGame(newInv, newInv == opp ? game.PlayerInitiator : opp);
+                    Clients.Clients(new[] {opp.ConnectionId, game.PlayerInitiator.ConnectionId})
+                        .beginNewGame(new {InvitatorName = newInv.UserName, GameId = newId});
                 }
             }
+        }
             
             await gameContext.SaveChangesAsync();
         }
@@ -258,6 +294,13 @@ namespace Edison.TickTackToe.Web
             return prevInv;
         }
 
+
+        private async Task<MemberStatus> GetStatusByName(string statusName, HubCallerContext hubContext)
+        {
+            var gameContext = hubContext.Request.GetHttpContext().GetOwinContext().Get<GameContext>();
+            return await gameContext.MemberStatuses.SingleAsync(ms => ms.Name.Equals(statusName));
+        }
+
         private async Task<GameFigure> GetFigure(string userName, GameContext context, Game game)
         {
             if (userName.Equals(game.OpponentUserName))
@@ -281,7 +324,7 @@ namespace Edison.TickTackToe.Web
         private async Task<int> CreateNewGame(Member invitator, Member opponent, int fieldSize = 3)
         {
             // quess context is a singletone
-            var context = HttpContext.Current.GetOwinContext().Get<GameContext>();
+            var context = Context.Request.GetHttpContext().GetOwinContext().Get<GameContext>();
             var game = new Game
             {
                 OpponentUserName = opponent.UserName,
