@@ -259,7 +259,7 @@ namespace Edison.TickTackToe.Web
                             var newInv = DefineNewInvitator(game, game.PlayerInitiator, opp);
                             var newId = await CreateNewGame(newInv, newInv == opp ? game.PlayerInitiator : opp);
                             Clients.Clients(new[] {opp.ConnectionId, game.PlayerInitiator.ConnectionId})
-                                .beginNewGame(new {InvitatorName = newInv.UserName, GameId = newId});
+                                .beginNewGame(new {InvitatorName = newInv.UserName, OpponentName = newInv == opp ? game.PlayerInitiator.UserName: opp.UserName,  GameId = newId});
                         }
                         // no-yes case
                         else

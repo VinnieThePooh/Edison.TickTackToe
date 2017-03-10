@@ -293,17 +293,17 @@ function onPlayersStatusChanged(data) {
 
 
 function onBeginNewGame(data) {
+    
     var invName = data.InvitatorName;
-    // currentUser
     var oppName = data.OpponentName;
-
+    var cuName = $("#tableUsers").data("name"); 
     // change status here
     // direct callback call to change status
     var par = { InvitatorName: invName, OpponentName: oppName, GameId: data.GameId, StatusCode: 1 };
     onPlayersStatusChanged(par);
     setDisableStateUsersTable(true);
 
-    gameManager = new GameManager($.connection.gamesHub, invName, oppName, oppName, data.GameId,3);
+    gameManager = new GameManager($.connection.gamesHub, invName, oppName, cuName, data.GameId, 3);
     gameManager.startGame();
 }
 
