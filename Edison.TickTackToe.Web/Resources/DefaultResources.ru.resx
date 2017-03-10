@@ -117,10 +117,73 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="TextApplicationDescriptionPage" xml:space="preserve">
-    <value>Game description will be here</value>
+  <data name="AppDescText" xml:space="preserve">
+    <value>Крестики-Нолики</value>
+  </data>
+  <data name="BtnTextInviteUser" xml:space="preserve">
+    <value>Пригласить</value>
+  </data>
+  <data name="ErrorTimeoutUsersLoading" xml:space="preserve">
+    <value>Таймаут при загрузке списка пользователей. Попробуйте обновить страницу позже</value>
+  </data>
+  <data name="HeaderGreeting" xml:space="preserve">
+    <value>Привет</value>
+  </data>
+  <data name="HeaderLogoffText" xml:space="preserve">
+    <value>Выйти</value>
+  </data>
+  <data name="HeaderPlayingField" xml:space="preserve">
+    <value>Игровое поле</value>
+  </data>
+  <data name="SiteAreaUserJoinedSite" xml:space="preserve">
+    <value>пользователь # зашел на сайт</value>
+  </data>
+  <data name="SiteAreaUserLeftSite" xml:space="preserve">
+    <value>пользователь # покинул сайт</value>
+  </data>
+  <data name="UsersTableHeadName" xml:space="preserve">
+    <value>Имя пользователя</value>
+  </data>
+  <data name="UsersTableHeadStatus" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="UsersTableTitle" xml:space="preserve">
+    <value>Пользователи</value>
   </data>
   <data name="ValInvalidLoginAttempt" xml:space="preserve">
-    <value>Invalid login attempt</value>
+    <value>Некорректные логин или пароль</value>
+  </data>
+  <data name="WorkflowDraw" xml:space="preserve">
+    <value>Ничья.  Хотите сыграть еще раз?</value>
+  </data>
+  <data name="WorkflowOpponentFirst" xml:space="preserve">
+    <value>Оппонент делает ход первым</value>
+  </data>
+  <data name="WorkflowOpponentsTurn" xml:space="preserve">
+    <value>Оппонент делает ход</value>
+  </data>
+  <data name="WorkflowUserAcceptedInvitation" xml:space="preserve">
+    <value># принял ваше приглашение</value>
+  </data>
+  <data name="WorkflowUserGotInvitation" xml:space="preserve">
+    <value># пригласил вас в игру. Хотите сыграть?</value>
+  </data>
+  <data name="WorkflowUserLostTheGame" xml:space="preserve">
+    <value>Вы проиграли. Хотите сыграть еще раз?</value>
+  </data>
+  <data name="WorkflowUserRejectedInvitation" xml:space="preserve">
+    <value># отклонил ваше приглашение</value>
+  </data>
+  <data name="WorkflowUserRejectedToProceed" xml:space="preserve">
+    <value># отказался продолжать</value>
+  </data>
+  <data name="WorkflowUserWonTheGame" xml:space="preserve">
+    <value>Вы выиграли!! Хотите сыграть еще раз?</value>
+  </data>
+  <data name="WorkflowYouFirst" xml:space="preserve">
+    <value>Вы делаете первый ход</value>
+  </data>
+  <data name="WorkflowYourTurn" xml:space="preserve">
+    <value>Ваша очередь делать ход</value>
   </data>
 </root>

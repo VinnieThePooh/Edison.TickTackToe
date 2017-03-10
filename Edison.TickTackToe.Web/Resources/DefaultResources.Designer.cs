@@ -61,20 +61,209 @@ namespace Edison.TickTackToe.Web.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Game description will be here.
+        ///   Looks up a localized string similar to Tick-Tack-Toe.
         /// </summary>
-        public static string TextApplicationDescriptionPage {
+        public static string AppDescText {
             get {
-                return ResourceManager.GetString("TextApplicationDescriptionPage", resourceCulture);
+                return ResourceManager.GetString("AppDescText", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Логин или пароль введены некорректно.
+        ///   Looks up a localized string similar to Invite.
+        /// </summary>
+        public static string BtnTextInviteUser {
+            get {
+                return ResourceManager.GetString("BtnTextInviteUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not load users list. Try to reload page later.
+        /// </summary>
+        public static string ErrorTimeoutUsersLoading {
+            get {
+                return ResourceManager.GetString("ErrorTimeoutUsersLoading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hello.
+        /// </summary>
+        public static string HeaderGreeting {
+            get {
+                return ResourceManager.GetString("HeaderGreeting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Log off.
+        /// </summary>
+        public static string HeaderLogoffText {
+            get {
+                return ResourceManager.GetString("HeaderLogoffText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Playing field.
+        /// </summary>
+        public static string HeaderPlayingField {
+            get {
+                return ResourceManager.GetString("HeaderPlayingField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to user # joined the site.
+        /// </summary>
+        public static string SiteAreaUserJoinedSite {
+            get {
+                return ResourceManager.GetString("SiteAreaUserJoinedSite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User # left the site.
+        /// </summary>
+        public static string SiteAreaUserLeftSite {
+            get {
+                return ResourceManager.GetString("SiteAreaUserLeftSite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User name.
+        /// </summary>
+        public static string UsersTableHeadName {
+            get {
+                return ResourceManager.GetString("UsersTableHeadName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Status.
+        /// </summary>
+        public static string UsersTableHeadStatus {
+            get {
+                return ResourceManager.GetString("UsersTableHeadStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Users.
+        /// </summary>
+        public static string UsersTableTitle {
+            get {
+                return ResourceManager.GetString("UsersTableTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid login attempt.
         /// </summary>
         public static string ValInvalidLoginAttempt {
             get {
                 return ResourceManager.GetString("ValInvalidLoginAttempt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nobody won. Wanna play once more?.
+        /// </summary>
+        public static string WorkflowDraw {
+            get {
+                return ResourceManager.GetString("WorkflowDraw", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Opponent makes a step first.
+        /// </summary>
+        public static string WorkflowOpponentFirst {
+            get {
+                return ResourceManager.GetString("WorkflowOpponentFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Opponent&apos;s turn to make step.
+        /// </summary>
+        public static string WorkflowOpponentsTurn {
+            get {
+                return ResourceManager.GetString("WorkflowOpponentsTurn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to # accepted your invitation.
+        /// </summary>
+        public static string WorkflowUserAcceptedInvitation {
+            get {
+                return ResourceManager.GetString("WorkflowUserAcceptedInvitation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to # has invited u in game. Wanna accept?.
+        /// </summary>
+        public static string WorkflowUserGotInvitation {
+            get {
+                return ResourceManager.GetString("WorkflowUserGotInvitation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You lost. Wanna play once more?.
+        /// </summary>
+        public static string WorkflowUserLostTheGame {
+            get {
+                return ResourceManager.GetString("WorkflowUserLostTheGame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to # rejected your invitation.
+        /// </summary>
+        public static string WorkflowUserRejectedInvitation {
+            get {
+                return ResourceManager.GetString("WorkflowUserRejectedInvitation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to # rejected to proceed.
+        /// </summary>
+        public static string WorkflowUserRejectedToProceed {
+            get {
+                return ResourceManager.GetString("WorkflowUserRejectedToProceed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You won!!! Wanna play once more?.
+        /// </summary>
+        public static string WorkflowUserWonTheGame {
+            get {
+                return ResourceManager.GetString("WorkflowUserWonTheGame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You make first step.
+        /// </summary>
+        public static string WorkflowYouFirst {
+            get {
+                return ResourceManager.GetString("WorkflowYouFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your turn to make a step.
+        /// </summary>
+        public static string WorkflowYourTurn {
+            get {
+                return ResourceManager.GetString("WorkflowYourTurn", resourceCulture);
             }
         }
     }

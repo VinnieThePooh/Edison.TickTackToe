@@ -13,6 +13,14 @@ namespace Edison.TickTackToe.Web
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
+            routes.MapRoute("", "{language}/{controller}/{action}/{id}", new
+            {
+               controller = "Home",
+               action = "Index",
+               id = "",
+               language =  "en" 
+            });
+
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",

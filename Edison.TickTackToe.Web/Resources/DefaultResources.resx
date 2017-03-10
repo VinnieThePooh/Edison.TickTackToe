@@ -117,10 +117,73 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="TextApplicationDescriptionPage" xml:space="preserve">
-    <value>Game description will be here</value>
+  <data name="AppDescText" xml:space="preserve">
+    <value>Tick-Tack-Toe</value>
+  </data>
+  <data name="BtnTextInviteUser" xml:space="preserve">
+    <value>Invite</value>
+  </data>
+  <data name="ErrorTimeoutUsersLoading" xml:space="preserve">
+    <value>Could not load users list. Try to reload page later</value>
+  </data>
+  <data name="HeaderGreeting" xml:space="preserve">
+    <value>Hello</value>
+  </data>
+  <data name="HeaderLogoffText" xml:space="preserve">
+    <value>Log off</value>
+  </data>
+  <data name="HeaderPlayingField" xml:space="preserve">
+    <value>Playing field</value>
+  </data>
+  <data name="SiteAreaUserJoinedSite" xml:space="preserve">
+    <value>user # joined the site</value>
+  </data>
+  <data name="SiteAreaUserLeftSite" xml:space="preserve">
+    <value>User # left the site</value>
+  </data>
+  <data name="UsersTableHeadName" xml:space="preserve">
+    <value>User name</value>
+  </data>
+  <data name="UsersTableHeadStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="UsersTableTitle" xml:space="preserve">
+    <value>Users</value>
   </data>
   <data name="ValInvalidLoginAttempt" xml:space="preserve">
-    <value>Логин или пароль введены некорректно</value>
+    <value>Invalid login attempt</value>
+  </data>
+  <data name="WorkflowDraw" xml:space="preserve">
+    <value>Nobody won. Wanna play once more?</value>
+  </data>
+  <data name="WorkflowOpponentFirst" xml:space="preserve">
+    <value>Opponent makes a step first</value>
+  </data>
+  <data name="WorkflowOpponentsTurn" xml:space="preserve">
+    <value>Opponent's turn to make step</value>
+  </data>
+  <data name="WorkflowUserAcceptedInvitation" xml:space="preserve">
+    <value># accepted your invitation</value>
+  </data>
+  <data name="WorkflowUserGotInvitation" xml:space="preserve">
+    <value># has invited u in game. Wanna accept?</value>
+  </data>
+  <data name="WorkflowUserLostTheGame" xml:space="preserve">
+    <value>You lost. Wanna play once more?</value>
+  </data>
+  <data name="WorkflowUserRejectedInvitation" xml:space="preserve">
+    <value># rejected your invitation</value>
+  </data>
+  <data name="WorkflowUserRejectedToProceed" xml:space="preserve">
+    <value># rejected to proceed</value>
+  </data>
+  <data name="WorkflowUserWonTheGame" xml:space="preserve">
+    <value>You won!!! Wanna play once more?</value>
+  </data>
+  <data name="WorkflowYouFirst" xml:space="preserve">
+    <value>You make first step</value>
+  </data>
+  <data name="WorkflowYourTurn" xml:space="preserve">
+    <value>Your turn to make a step</value>
   </data>
 </root>

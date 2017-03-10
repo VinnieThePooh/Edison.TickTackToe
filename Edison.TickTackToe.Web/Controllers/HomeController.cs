@@ -17,7 +17,7 @@ namespace Edison.TickTackToe.Web.Controllers
 
         public ActionResult About()
         {
-            ViewBag.Message = DefaultResources.TextApplicationDescriptionPage;
+            ViewBag.Message = DefaultResources.AppDescText;
             return View();
         }
     }

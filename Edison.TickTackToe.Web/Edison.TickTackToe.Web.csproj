@@ -207,13 +207,17 @@
     <Compile Include="Controllers\GamesController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="GamesHub.cs" />
+    <Compile Include="Infrastructure\Attributes\InternationalizationAttribute.cs" />
     <Compile Include="Infrastructure\GameResolver.cs" />
     <Compile Include="Infrastructure\GameState.cs" />
     <Compile Include="Infrastructure\OnlineUsersTracker.cs" />
     <Compile Include="ModelExtensions\MemberExtensions.cs" />
     <Compile Include="Models\UserProjection.cs" />
-    <Compile Include="Resources\DefaultResources.en.Designer.cs">
-      <DependentUpon>DefaultResources.en.resx</DependentUpon>
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\DefaultResources.ru.Designer.cs">
+      <DependentUpon>DefaultResources.ru.resx</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
@@ -221,9 +225,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>DefaultResources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Global.asax.cs">
-      <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\AccountViewModels.cs" />
     <Compile Include="ViewModels\ManageViewModels.cs" />
@@ -304,20 +305,20 @@
     <Content Include="Scripts\jquery-1.10.2.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\DefaultResources.en.resx">
+    <ProjectReference Include="..\Edison.TickTackToe.Domain\Edison.TickTackToe.Domain.csproj">
+      <Project>{154241cc-a412-40fc-a022-e5e13f562ab3}</Project>
+      <Name>Edison.TickTackToe.Domain</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\DefaultResources.ru.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>DefaultResources.en.Designer.cs</LastGenOutput>
+      <LastGenOutput>DefaultResources.ru.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\DefaultResources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>DefaultResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Edison.TickTackToe.Domain\Edison.TickTackToe.Domain.csproj">
-      <Project>{154241cc-a412-40fc-a022-e5e13f562ab3}</Project>
-      <Name>Edison.TickTackToe.Domain</Name>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

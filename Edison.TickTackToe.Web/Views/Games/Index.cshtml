@@ -1,4 +1,5 @@
-﻿@{
+﻿@using Edison.TickTackToe.Web.Resources
+@{
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -7,21 +8,42 @@
 {
     @Scripts.Render("~/bundles/signalr")
     <script type="text/javascript" src="~/signalr/hubs"></script>
+    <script type="text/javascript">
+        $(function() {
+            var res  = window.resources = {};
+            res.appDescPage = '@DefaultResources.AppDescText';
+            res.errorTimeoutUsersLoading = '@DefaultResources.ErrorTimeoutUsersLoading';
+            res.workflowUserRejectedInvitation = '@DefaultResources.WorkflowUserRejectedInvitation';
+            res.workflowUserRejectedToProceed = '@DefaultResources.WorkflowUserRejectedToProceed';
+            res.workflowUserAcceptedInvitation = '@DefaultResources.WorkflowUserAcceptedInvitation';
+            res.siteAreaUserJoinedSite = '@DefaultResources.SiteAreaUserJoinedSite';
+            res.siteAreaUserLeftSite = '@DefaultResources.SiteAreaUserLeftSite';
+            res.workflowUserGotInvitation = '@DefaultResources.WorkflowUserGotInvitation';
+            res.workflowUserLostTheGame = '@DefaultResources.WorkflowUserLostTheGame';
+            res.workflowDraw = '@DefaultResources.WorkflowDraw';
+            res.workflowYourTurn = '@DefaultResources.WorkflowYourTurn';
+            res.workflowOpponentsTurn = $("<div>").html('@DefaultResources.WorkflowOpponentsTurn').text();
+            res.workflowOpponentFirst = '@DefaultResources.WorkflowOpponentFirst';
+            res.workflowYouFirst = '@DefaultResources.WorkflowYouFirst';
+            res.workflowUserWonTheGame = '@DefaultResources.WorkflowUserWonTheGame';
+            res.btnTextInviteUser = '@DefaultResources.BtnTextInviteUser';
+        })
+    </script>
     <script type="text/javascript" src="~/Scripts/gamesentry.js"></script>
 }
 <div class="messageBox">
     <p id="mu" class="text-info"></p>
 </div>
 <div class="users">
-    <h4 class="text-center">Users</h4>
+    <h4 class="text-center">@DefaultResources.UsersTableTitle</h4>
     <table class="table table-hover" id="tableUsers" data-email="@ViewBag.Email" data-name="@HttpContext.Current.User.Identity.Name">
         <thead>
         <tr>
             <th>
-                User name
+                @DefaultResources.UsersTableHeadName
             </th>
             <th>
-                User status
+                @DefaultResources.UsersTableHeadStatus
             </th>
         </tr>
         </thead>
@@ -34,7 +56,7 @@
         <span class="contact text-info">
             <p id="mcontact"></p>
         </span>
-        Playing field
+        @DefaultResources.HeaderPlayingField
     </h2>
     <br/>
 </div>

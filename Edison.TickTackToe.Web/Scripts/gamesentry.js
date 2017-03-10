@@ -35,7 +35,7 @@ $(function () {
             })
             .fail(function(error) {
                 var par = $("#messageUsers");
-                setTempMessage(par, "Could not load users list. Try to reload page later.");
+                setTempMessage(par, window.resources.errorTimeoutUsersLoading);
                 console.log(error.stack);
             });
     });
@@ -52,8 +52,7 @@ function addUserToTable(table, user) {
 
     // add button if current row doesnot match current user
     if ($("#tableUsers").data("name") !== user.Name) {
-
-        var button = $("<button>").addClass("button button-default").height(30).text("Invite");
+        var button = $("<button>").addClass("button button-default").height(30).text(window.resources.btnTextInviteUser);
         button.on("click", function() {
             var row = $(this).closest("tr");
             var email = row.data("email");
@@ -220,19 +219,19 @@ function addFigureToCell(cell, figureName) {
 // callbacks
 //
 function onUserRejectedInvitation(data) {
-    setTempMessage($("#mcontact"), data.UserName + " rejected your invitation");
+    setTempMessage($("#mcontact"), window.resources.workflowUserRejectedInvitation.replace("#", data.UserName));
 }
 
 
 function onPlayerRejectedToProceed() {
-    setTempMessage($("#mcontact"), gameManager.getYourOnlineEnemyName() + " rejected to proceed", 3);
+    setTempMessage($("#mcontact"), window.resources.workflowUserRejectedToProceed.replace("#", gameManager.getYourOnlineEnemyName()), 3);
     var field = $("#field");
     field.length && field.remove();
     setDisableStateUsersTable(false);
 }
 
 function onUserAcceptedInvitation(data) {
-    setTempMessage($("#mcontact"), data.OpponentName + " accepted your invitation");
+    setTempMessage($("#mcontact"), window.resources.workflowUserAcceptedInvitation.replace("#", data.OpponentName));
 
     // changes status here
     var invName = $("#tableUsers").data("name");
@@ -261,7 +260,7 @@ function onUserJoinedSite(data) {
 
     if (!targetRow.length) {
         addUserToTable(tableUsers, data);
-        setTempMessage($("#mu"), "User " + name + " joined the site");
+        setTempMessage($("#mu"), window.resources.siteAreaUserJoinedSite.replace("#",name));
     }
 }
 
@@ -316,8 +315,7 @@ function onHandleInvitation(data) {
     if ($("#btnAccept").length)
         return;
 
-    mcontact.text(data.UserName + " has invited u in game. Wanna accept?").attr("style", "font-size:12px;");
-    
+    mcontact.text(window.resources.workflowUserGotInvitation.replace("#", data.UserName)).attr("style", "font-size:12px;");
     var btnAccept = $("<button>").addClass("btn btn-default").attr("id", "btnAccept").on("click", function () {
         // send to server
         $.connection.gamesHub.server.acceptInvitation(data.UserName);
@@ -391,18 +389,18 @@ function onUserMadeStep(data) {
     var oppName = gameManager.getYourOnlineEnemyName();
     var userWon = gameManager.resolveUser(oppName);
     if (userWon) {
-        setTempMessage($("#mg"), "You lost. Wanna play once more?", -1);
+        setTempMessage($("#mg"), window.resources.workflowUserLostTheGame, -1);
         createContinueButtons();
         return;
     }
 
     var cu = gameManager.getCurrentUserName();
     if (!gameManager.resolveUser(cu) && !gameManager.getUnsetItemsCount()) {
-        $("#mg").text("Nobody won. Wanna play once more?");
+        $("#mg").text(window.resources.workflowDraw);
         createContinueButtons();
         return;
     }
-    setTempMessage($("#mg") , "Your turn to make a step",-1);
+    setTempMessage($("#mg") , window.resources.workflowYourTurn,-1);
     gameManager.inverseCanMakeStep();
 }
 
@@ -444,7 +442,7 @@ function onStatusChanged(data) {
 
         if (targetRow) {
             targetRow.remove();
-            setTempMessage($("#mu"), "User " + name + " left the site");
+            setTempMessage($("#mu"), window.resources.siteAreaUserLeftSite.replace("#",name));
         }
     }
 
@@ -482,9 +480,9 @@ function GameManager(hub, invName, oppName, curUserName, gid, fsize) {
     this.startGame = function() {
         createPlayingField();
         if (currentUserName === invitatorName)
-            setTempMessage($("#mg"), "Opponent makes a step first", -1);
+            setTempMessage($("#mg"), window.resources.workflowOpponentFirst, -1);
         else
-            setTempMessage($("#mg"), "You make first step", -1);
+            setTempMessage($("#mg"), window.resources.workflowYouFirst, -1);
 
         var cells = $(".cell");
         cells.off();
@@ -511,18 +509,17 @@ function GameManager(hub, invName, oppName, curUserName, gid, fsize) {
             var flag = instance.resolveUser(cUserName);
             instance.makeStep(i, j);
             if (flag) {
-                setTempMessage($("#mg"), "You won!!!. Wanna play once more?", -1);
+                setTempMessage($("#mg"), window.resources.workflowUserWonTheGame, -1);
                 createContinueButtons();
                 return;
             }
 
             if (!instance.getUnsetItemsCount()) {
-                $("#mg").text("Nobody won. Wanna play once more?");
+                $("#mg").text(window.resources.workflowDraw);
                 createContinueButtons();
                 return;
             }
-
-            $("#mg").text("Opponent's turn to make step");
+            $("#mg").text(window.resources.workflowOpponentsTurn);
         });
     }
 
