@@ -169,8 +169,10 @@ $(function () {
         }).fail(function () {
             console.log("Failed while sending decision to proceed");
         });
+        
+        var btnN = $("#btnNo");
+        btnN.length && btnN.remove();
 
-        event.target.remove();
         var btnY = $("#btnYes");
         btnY.length && btnY.remove();
         $("#mg").text("");
@@ -184,8 +186,10 @@ $(function () {
 
                 var gameId = gameManager.getGameId();
                 onPlayersStatusChanged({ StatusCode: 0, OpponentName: gameManager.getCurrentUserName(), InvitatorName: gameManager.getYourOnlineEnemyName() });
+                
+                var btnY = $("#btnYes");
+                btnY.length && btnY.remove();
 
-                event.target.remove();
                 var btnN = $("#btnNo");
                 btnN.length && btnN.remove();
                 $("#mg").text("");
@@ -695,7 +699,7 @@ $(function () {
             var span = $("<span>").attr("id", "mg")
                 .css("float", "left")
                 .css("font-size", "16px")
-                .css("max-width", "300px")
+                .css("max-width", "450px")
                 .css("position", "absolute")
                 .css("left", "5px")
                 .addClass("text-info");

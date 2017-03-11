@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -74,17 +75,17 @@ namespace Edison.TickTackToe.Web.Controllers
             {
                 return View(model);
             }
+            
+                var user= await UserManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    ModelState.AddModelError("", DefaultResources.ValInvalidLoginAttempt);
+                    return View(model);
+                }
 
-            var user= await UserManager.FindByEmailAsync(model.Email);
-            if (user == null)
-            {
-                ModelState.AddModelError("", DefaultResources.ValInvalidLoginAttempt);
-                return View(model);
-            }
-
-            await SignInManager.SignInAsync(user, model.RememberMe, false);
-            OnlineUsersTracker.AddOnlineUser(new UserProjection() { Email = model.Email, Name = user.UserName,  Status = StatusNames.Idle });
-            return RedirectToLocal(returnUrl);
+                await SignInManager.SignInAsync(user, model.RememberMe, false);
+                OnlineUsersTracker.AddOnlineUser(new UserProjection() { Email = model.Email, Name = user.UserName,  Status = StatusNames.Idle });
+                return RedirectToLocal(returnUrl);
         }
 
         [AllowAnonymous]

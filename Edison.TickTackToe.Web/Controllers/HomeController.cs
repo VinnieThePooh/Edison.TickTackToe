@@ -8,10 +8,6 @@ namespace Edison.TickTackToe.Web.Controllers
     {
         public ActionResult Index()
         {
-            using (var context = new GameContext())
-            {
-                context.Database.Initialize(true);
-            }
             return View();
         }
 
