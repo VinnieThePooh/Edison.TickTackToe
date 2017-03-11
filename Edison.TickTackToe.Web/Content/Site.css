@@ -63,7 +63,6 @@ footer {
     max-height: 1024px;
     overflow: hidden;
     padding-bottom: 10000px;
-    max-width: 350px;
 }
 
 .users table td, .users table th {
@@ -76,7 +75,7 @@ footer {
 }
 
 .game {
-    width: 80%;
+    width:80%;
     float: right;
     padding: 15px;
     padding-top: 5px;

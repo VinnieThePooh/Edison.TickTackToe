@@ -115,6 +115,15 @@ namespace Edison.TickTackToe.Web.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Loading users list....
+        /// </summary>
+        public static string SiteAreaNotifUsersLoading {
+            get {
+                return ResourceManager.GetString("SiteAreaNotifUsersLoading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to user # joined the site.
         /// </summary>
         public static string SiteAreaUserJoinedSite {

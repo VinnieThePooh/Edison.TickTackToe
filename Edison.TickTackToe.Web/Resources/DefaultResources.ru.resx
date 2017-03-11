@@ -135,11 +135,14 @@
   <data name="HeaderPlayingField" xml:space="preserve">
     <value>Игровое поле</value>
   </data>
+  <data name="SiteAreaNotifUsersLoading" xml:space="preserve">
+    <value>Загружается список игроков...</value>
+  </data>
   <data name="SiteAreaUserJoinedSite" xml:space="preserve">
-    <value>пользователь # зашел на сайт</value>
+    <value>Пользователь # зашел на сайт</value>
   </data>
   <data name="SiteAreaUserLeftSite" xml:space="preserve">
-    <value>пользователь # покинул сайт</value>
+    <value>Пользователь # покинул сайт</value>
   </data>
   <data name="UsersTableHeadName" xml:space="preserve">
     <value>Имя пользователя</value>
