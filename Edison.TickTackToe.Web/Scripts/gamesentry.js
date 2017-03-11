@@ -205,6 +205,7 @@ $(function () {
         var btnN = $("<button>").attr("id", "btnNo")
                     .addClass("btn btn-default")
                     .css("margin-right", "5px")
+                    .css("margin-left","5px")
                     .text("No")
                     .on("click", btnNoClickHandler);
 
