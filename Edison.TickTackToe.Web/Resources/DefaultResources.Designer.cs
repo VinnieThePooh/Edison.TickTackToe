@@ -115,6 +115,15 @@ namespace Edison.TickTackToe.Web.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Register new user.
+        /// </summary>
+        public static string RefRegisterNewUser {
+            get {
+                return ResourceManager.GetString("RefRegisterNewUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loading users list....
         /// </summary>
         public static string SiteAreaNotifUsersLoading {

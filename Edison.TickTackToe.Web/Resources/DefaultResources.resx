@@ -135,6 +135,9 @@
   <data name="HeaderPlayingField" xml:space="preserve">
     <value>Playing field</value>
   </data>
+  <data name="RefRegisterNewUser" xml:space="preserve">
+    <value>Register new user</value>
+  </data>
   <data name="SiteAreaNotifUsersLoading" xml:space="preserve">
     <value>Loading users list...</value>
   </data>

@@ -104,6 +104,10 @@ footer {
     max-width: 450px;
 }
 
+.wrapper h2, .wrapper h4 {
+    padding: 0 15px 0 15px;
+}
+
 #mcontact {
     display: inline-block;
     margin-right: 5px;
@@ -119,7 +123,4 @@ footer {
 }
 
 
-/*.field-validation-error {
-    color: red;
-} */
 
