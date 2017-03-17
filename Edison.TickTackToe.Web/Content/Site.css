@@ -113,3 +113,13 @@ footer {
     display: inline-block;
 }
 
+/* forms validation related area */
+.form-group input {
+    display: inline-block;
+}
+
+
+/*.field-validation-error {
+    color: red;
+} */
+

@@ -156,6 +156,12 @@
   <data name="ValInvalidLoginAttempt" xml:space="preserve">
     <value>Некорректные логин или пароль</value>
   </data>
+  <data name="ValSuchEmailAlreadyExists" xml:space="preserve">
+    <value>Email уже зарегистрирован на сайте</value>
+  </data>
+  <data name="ValSuchUserNameExists" xml:space="preserve">
+    <value>Пользователь с таким именем уже зарегистрирован на сайте</value>
+  </data>
   <data name="WorkflowDraw" xml:space="preserve">
     <value>Ничья.  Хотите сыграть еще раз?</value>
   </data>

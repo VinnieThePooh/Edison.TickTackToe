@@ -9,11 +9,11 @@ using Edison.TickTackToe.Domain.Models;
 namespace Edison.TickTackToe.Domain.DataAccess
 {
     
-    public class UserProfileConfiguration : EntityTypeConfiguration<Member>
+    public class MemberConfiguration : EntityTypeConfiguration<Member>
     {
-        public UserProfileConfiguration()
+        public MemberConfiguration()
         {
-            ToTable("Profiles");
+            ToTable("Members");
             Property(e => e.UserName)
                 .HasMaxLength(DefaultConstraints.StringMaxLength)
                 .HasColumnAnnotation(IndexAnnotation.AnnotationName, new IndexAnnotation(new IndexAttribute() {IsUnique = true}))

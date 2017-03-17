@@ -156,6 +156,12 @@
   <data name="ValInvalidLoginAttempt" xml:space="preserve">
     <value>Invalid login attempt</value>
   </data>
+  <data name="ValSuchEmailAlreadyExists" xml:space="preserve">
+    <value>Email already registered on website</value>
+  </data>
+  <data name="ValSuchUserNameExists" xml:space="preserve">
+    <value>User with such name already exists</value>
+  </data>
   <data name="WorkflowDraw" xml:space="preserve">
     <value>Nobody won. Wanna play once more?</value>
   </data>

@@ -178,6 +178,24 @@ namespace Edison.TickTackToe.Web.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Email already registered on website.
+        /// </summary>
+        public static string ValSuchEmailAlreadyExists {
+            get {
+                return ResourceManager.GetString("ValSuchEmailAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User with such name already exists.
+        /// </summary>
+        public static string ValSuchUserNameExists {
+            get {
+                return ResourceManager.GetString("ValSuchUserNameExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Nobody won. Wanna play once more?.
         /// </summary>
         public static string WorkflowDraw {

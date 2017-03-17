@@ -23,7 +23,7 @@ namespace Edison.TickTackToe.Domain.DataAccess
        protected override void OnModelCreating(DbModelBuilder modelBuilder)
        {
            base.OnModelCreating(modelBuilder);
-           modelBuilder.Configurations.Add(new UserProfileConfiguration());
+           modelBuilder.Configurations.Add(new MemberConfiguration());
            modelBuilder.Configurations.Add(new GameStepConfiguration());
            modelBuilder.Configurations.Add(new GameFigureConfiguration());
            modelBuilder.Configurations.Add(new MemberStatusConfiguration());
