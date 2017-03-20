@@ -123,4 +123,8 @@ footer {
 }
 
 
+.validation-summary-errors li {
+    color: #b94a48;
+}
+
 

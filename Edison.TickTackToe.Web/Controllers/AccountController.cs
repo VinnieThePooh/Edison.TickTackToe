@@ -103,12 +103,12 @@ namespace Edison.TickTackToe.Web.Controllers
             if (ModelState.IsValid)
             {
                 var user = new Member {UserName = model.UserName, NickName = model.UserName, Email = model.Email};
-                
-                    var result = await UserManager.CreateAsync(user,model.Password);
-                    if (!result.Succeeded)
+                    var result = await UserManager.CreateAsync(user, model.Password);
+                    if (result.Succeeded)
                     {
                         await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-                        return RedirectToAction("Index", "Home");
+                        OnlineUsersTracker.AddOnlineUser(new UserProjection { Name = model.UserName, Email = model.Email, Status = StatusNames.Idle });
+                        return RedirectToAction("Index", "Games");
                     }
                     AddErrors(result);
             }

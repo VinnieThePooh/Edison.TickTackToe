@@ -9,12 +9,6 @@ namespace Edison.TickTackToe.Web.Controllers
         public ActionResult Index()
         {
             return View();
-        }
-
-        public ActionResult About()
-        {
-            ViewBag.Message = DefaultResources.AppDescText;
-            return View();
-        }
+        }        
     }
 }
