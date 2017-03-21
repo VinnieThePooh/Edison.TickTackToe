@@ -53,7 +53,7 @@ namespace Edison.TickTackToe.Web
 
                 // do not wait db updating
                 Clients.All.statusChanged(new {UserEmail = userEmail, StatusCode = newStatus});
-
+                
                 user.IdGameStatus = targetStatus.StatusId;
                 await gameContext.SaveChangesAsync();
             }

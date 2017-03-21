@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Data.Entity.Validation;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using Edison.TickTackToe.Domain.DataAccess;
 using Edison.TickTackToe.Domain.Infrastructure.Handbooks;
 using Edison.TickTackToe.Domain.Models;
 using Edison.TickTackToe.Web.Infrastructure;
@@ -12,10 +14,11 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using Edison.TickTackToe.Web.Models;
 using Edison.TickTackToe.Web.Resources;
+using Microsoft.AspNet.SignalR;
 
 namespace Edison.TickTackToe.Web.Controllers
 {
-    [Authorize]
+    [System.Web.Mvc.Authorize]
     public class AccountController : Controller
     {
         #region Fields
@@ -200,14 +203,19 @@ namespace Edison.TickTackToe.Web.Controllers
 
         //
         // POST: /Account/LogOff
+        // can be refactored
+        // there are redundant requests here
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> LogOff()
         {
-
             var id = HttpContext.User.Identity.GetUserId<int>();
             var user = await UserManager.FindByIdAsync(id);
+
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+            await SetUserStatus(StatusNames.Offline, user);
+            await FinishExistedGame(user);
+
             OnlineUsersTracker.RemoveOnlineUser(new UserProjection() {Email = user.Email, Name = user.UserName});
             return RedirectToAction("Index", "Home");
         }
@@ -255,6 +263,52 @@ namespace Edison.TickTackToe.Web.Controllers
             }
             return RedirectToAction("Index", "Games");
         }
+
+
+        private async Task FinishExistedGame(Member loggingOffUser)
+        {
+            var gameContext = HttpContext.GetOwinContext().Get<GameContext>();
+
+            var game = await gameContext.Games.SingleOrDefaultAsync(g => g.WinnerUserName == null &&
+                                                          (g.PlayerInitiator.UserName.Equals(loggingOffUser.UserName) ||
+                                                           g.OpponentUserName.Equals(loggingOffUser.UserName)));
+
+            if (game == null) 
+                return;
+            
+            Member otherPlayer;
+            if (loggingOffUser.UserName.Equals(game.OpponentUserName))
+                otherPlayer = game.PlayerInitiator;
+            else otherPlayer = gameContext.Users.Single(u => u.UserName.Equals(game.OpponentUserName));
+            game.WinnerUserName = otherPlayer.UserName;
+            game.GameEndingDate = DateTime.Now;
+            game.GameDescription = DefaultResources.GameDescriptionUserSuddenlyLeftSite.Replace("#",loggingOffUser.UserName);
+            await gameContext.SaveChangesAsync();
+
+            var context = GlobalHost.ConnectionManager.GetHubContext<GamesHub>();
+            context.Clients.Client(otherPlayer.ConnectionId).playerSuddenlyLeftTheSite();
+        }
+
+
+        private async Task<MemberStatus> GetStatusByName(string statusName)
+        {
+            var gameContext = HttpContext.GetOwinContext().Get<GameContext>();
+            return await gameContext.MemberStatuses.SingleAsync(ms => ms.Name.Equals(statusName));
+        }
+
+
+        private async Task SetUserStatus(string statusName, Member user)
+        {
+            var status = await GetStatusByName(statusName);
+            var gameContext = HttpContext.GetOwinContext().Get<GameContext>();
+            var targetuser = gameContext.Users.Find(user.Id);
+            if (statusName.Equals(StatusNames.Offline))
+                targetuser.ConnectionId = null;
+            targetuser.IdGameStatus = status.StatusId;
+            await gameContext.SaveChangesAsync();
+        }
+
+
 
         #endregion
 

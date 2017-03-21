@@ -15,11 +15,11 @@ namespace Edison.TickTackToe.Domain.DataAccess
         {
             ToTable("Members");
             Property(e => e.UserName)
-                .HasMaxLength(DefaultConstraints.StringMaxLength)
+                .HasMaxLength(DefaultConstraints.HandbooksStringMaxLength)
                 .HasColumnAnnotation(IndexAnnotation.AnnotationName, new IndexAnnotation(new IndexAttribute() {IsUnique = true}))
                 .IsRequired();
             Property(e => e.NickName)
-                .HasMaxLength(DefaultConstraints.StringMaxLength)
+                .HasMaxLength(DefaultConstraints.HandbooksStringMaxLength)
                 .HasColumnAnnotation(IndexAnnotation.AnnotationName, new IndexAnnotation(new IndexAttribute() {IsUnique = true}))
                 .IsRequired();
             HasMany(u => u.Games).WithOptional(g => g.PlayerInitiator).HasForeignKey(g => g.IdPlayerInitiator).WillCascadeOnDelete(false);
@@ -31,7 +31,7 @@ namespace Edison.TickTackToe.Domain.DataAccess
         public GameStepConfiguration()
         {
             HasRequired(gs => gs.ParentGame).WithMany(g => g.GameSteps).HasForeignKey(gs => gs.IdGame).WillCascadeOnDelete(true);
-            Property(gs => gs.PlayerName).IsRequired().HasMaxLength(DefaultConstraints.StringMaxLength);
+            Property(gs => gs.PlayerName).IsRequired().HasMaxLength(DefaultConstraints.HandbooksStringMaxLength);
         }
     }
 
@@ -51,7 +51,7 @@ namespace Edison.TickTackToe.Domain.DataAccess
             Property(gf => gf.Name)
                 .IsRequired()
                 .HasColumnAnnotation(IndexAnnotation.AnnotationName, new IndexAnnotation(new IndexAttribute() { IsUnique = true }))
-                .HasMaxLength(DefaultConstraints.StringMaxLength);
+                .HasMaxLength(DefaultConstraints.HandbooksStringMaxLength);
         }
     }
 
@@ -71,7 +71,16 @@ namespace Edison.TickTackToe.Domain.DataAccess
             Property(ms => ms.Name)
                 .IsRequired()
                 .HasColumnAnnotation(IndexAnnotation.AnnotationName,new IndexAnnotation(new IndexAttribute() {IsUnique = true}))
-                .HasMaxLength(DefaultConstraints.StringMaxLength);
+                .HasMaxLength(DefaultConstraints.HandbooksStringMaxLength);
+        }
+    }
+
+
+    public class GameConfiguration : EntityTypeConfiguration<Game>
+    {
+        public GameConfiguration()
+        {
+            Property(g => g.GameDescription).HasMaxLength(DefaultConstraints.DescriptionStringMaxLength);
         }
     }
 

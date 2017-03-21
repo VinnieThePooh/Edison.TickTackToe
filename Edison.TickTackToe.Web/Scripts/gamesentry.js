@@ -103,6 +103,7 @@ $(function () {
         client.playersStatusChanged = onPlayersStatusChanged;
         client.userMadeStep = onUserMadeStep;
         client.playerRejectedToProceed = onPlayerRejectedToProceed;
+        client.playerSuddenlyLeftTheSite = onPlayerSuddenlyLeftTheSite;
     }
 
 
@@ -150,7 +151,6 @@ $(function () {
             else trs = $("#tableUsers tr").filter(function () {
                 return $(this).find("td:eq(1)").text() === EnumMapper.fromInt[0];
             });
-            debugger;
             trs.find("button").attr("disabled", flag);
         }
     }
@@ -432,8 +432,6 @@ $(function () {
         console.log(data.Exception);
     }
 
-
-    // not tested
     function onStatusChanged(data) {
         console.log("User[" + data.UserEmail + "] changed status to " + EnumMapper.fromInt[data.StatusCode]);
         var rows = $("#tableUsers tr").filter(function () {
@@ -451,6 +449,21 @@ $(function () {
                 button.attr("disabled", false);
             }
         }
+    }
+
+
+    function onPlayerSuddenlyLeftTheSite(data) {
+
+        var message = window.resources.workflowUserSuddenlyLeftSite.replace("#", gameManager.getYourOnlineEnemyName());
+        setTempMessage($("#mg"), message);
+        var email = $("#tableUsers").data("email");
+
+        var field = $("#field");
+        field.length && field.remove();
+
+        $.connection.gamesHub.server.changeStatus(email, EnumMapper.fromString["Idle"])
+            .done(function () { console.log("Sending Idle status failed"); })
+            .fail(function () { console.log("Sending Idle status succeeded"); });
     }
 
 
@@ -711,9 +724,6 @@ $(function () {
             return $(".game").append(gameWrapper);
         }
     }
-
-
-
 
 });
 

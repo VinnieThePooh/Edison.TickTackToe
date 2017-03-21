@@ -23,6 +23,7 @@ namespace Edison.TickTackToe.Domain.Models
         public string WinnerUserName { get; set; }
         public string OpponentUserName { get; set; }
         public int FieldSize { get; set; }
+        public string GameDescription { get; set; }
 
         public bool? InvWannaProceed { get; set; }
         public bool? OppWannaProceed { get; set; }

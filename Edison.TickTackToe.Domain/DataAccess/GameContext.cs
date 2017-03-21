@@ -27,8 +27,7 @@ namespace Edison.TickTackToe.Domain.DataAccess
            modelBuilder.Configurations.Add(new GameStepConfiguration());
            modelBuilder.Configurations.Add(new GameFigureConfiguration());
            modelBuilder.Configurations.Add(new MemberStatusConfiguration());
-
-
+           modelBuilder.Configurations.Add(new GameConfiguration());
 
            modelBuilder.Entity<CustomUserLogin>().ToTable("UserLogins");
            modelBuilder.Entity<CustomUserRole>().ToTable("UserRoles");

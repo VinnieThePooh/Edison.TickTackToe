@@ -2,6 +2,7 @@
 {
     public static class DefaultConstraints
     {
-        public const int StringMaxLength = 200;
+        public const int HandbooksStringMaxLength = 200;
+        public const int DescriptionStringMaxLength = 500;
     }
 }

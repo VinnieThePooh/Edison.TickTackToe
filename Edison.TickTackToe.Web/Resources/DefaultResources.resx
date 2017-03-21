@@ -126,6 +126,9 @@
   <data name="ErrorTimeoutUsersLoading" xml:space="preserve">
     <value>Could not load users list. Try to reload page later</value>
   </data>
+  <data name="GameDescriptionUserSuddenlyLeftSite" xml:space="preserve">
+    <value>User # suddenly left the site while playing</value>
+  </data>
   <data name="HeaderGreeting" xml:space="preserve">
     <value>Hello</value>
   </data>
@@ -188,6 +191,9 @@
   </data>
   <data name="WorkflowUserRejectedToProceed" xml:space="preserve">
     <value># rejected to proceed</value>
+  </data>
+  <data name="WorkflowUserSuddenlyLeftSite" xml:space="preserve">
+    <value>User # suddenly left the site. You are winner.</value>
   </data>
   <data name="WorkflowUserWonTheGame" xml:space="preserve">
     <value>You won!!! Wanna play once more?</value>

@@ -88,6 +88,15 @@ namespace Edison.TickTackToe.Web.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User # suddenly left the site while playing.
+        /// </summary>
+        public static string GameDescriptionUserSuddenlyLeftSite {
+            get {
+                return ResourceManager.GetString("GameDescriptionUserSuddenlyLeftSite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hello.
         /// </summary>
         public static string HeaderGreeting {
@@ -273,6 +282,15 @@ namespace Edison.TickTackToe.Web.Resources {
         public static string WorkflowUserRejectedToProceed {
             get {
                 return ResourceManager.GetString("WorkflowUserRejectedToProceed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User # suddenly left the site. You are winner..
+        /// </summary>
+        public static string WorkflowUserSuddenlyLeftSite {
+            get {
+                return ResourceManager.GetString("WorkflowUserSuddenlyLeftSite", resourceCulture);
             }
         }
         
